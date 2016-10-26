@@ -41,7 +41,7 @@ public class MainActivity extends AppCompatActivity {
 
     public static final String TAG = "MainActivity";
 
-    private String mAddress = "98:D3:31:70:14:79";
+    private String mAddress = "20:14:10:29:10:50";
 
     private static final int REQUEST_ENABLE_BT = 1;
 

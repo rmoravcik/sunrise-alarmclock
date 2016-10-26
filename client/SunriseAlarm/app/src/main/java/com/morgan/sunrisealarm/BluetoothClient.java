@@ -37,7 +37,7 @@ public class BluetoothClient {
     private static final String TAG = "BluetoothClient";
 
     private static final UUID MY_UUID =
-            UUID.fromString("8ce255c0-200a-11e0-ac64-0800200c9a66");
+            UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
 
     public static final int STATE_NONE = 0;       // we're doing nothing
     public static final int STATE_CONNECTING = 1; // now initiating an outgoing connection
@@ -172,7 +172,7 @@ public class BluetoothClient {
             BluetoothSocket tmp = null;
 
             try {
-                tmp = device.createInsecureRfcommSocketToServiceRecord(MY_UUID);
+                tmp = device.createRfcommSocketToServiceRecord(MY_UUID);
             } catch (IOException e) {
                 Log.e(TAG, "Socket create() failed", e);
             }
