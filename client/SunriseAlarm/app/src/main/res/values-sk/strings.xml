@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Budík</string>
+    <string name="day1">Pondelok</string>
+    <string name="day2">Útorok</string>
+    <string name="day3">Streda</string>
+    <string name="day5">Piatok</string>
+    <string name="day4">Štvrtok</string>
+    <string name="day6">Sobota</string>
+    <string name="day7">Nedeľa</string>
+    <string name="select_time">Zvoľte čas</string>
+    <string name="unable_connect_device">Nepodarilo sa pripojiť k zariadeniu</string>
+    <string name="bluetooth_not_available">Bluetooth neni dostupné</string>
+    <string name="connection_lost">Spojenie k zariadeniu sa stratilo</string>
+    <string name="zero_time">00:00</string>
+</resources>

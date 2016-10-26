@@ -1,0 +1,15 @@
+<resources>
+    <string name="app_name">Sunrise Alarm</string>
+    <string name="day1">Monday</string>
+    <string name="day2">Tuesday</string>
+    <string name="day3">Wednesday</string>
+    <string name="day4">Thursday</string>
+    <string name="day5">Friday</string>
+    <string name="day6">Saturday</string>
+    <string name="day7">Sunday</string>
+    <string name="select_time">Select time</string>
+    <string name="unable_connect_device">Unable to connect device</string>
+    <string name="bluetooth_not_available">Bluetooth is not available</string>
+    <string name="connection_lost">Device connection was lost</string>
+    <string name="zero_time">00:00</string>
+</resources>

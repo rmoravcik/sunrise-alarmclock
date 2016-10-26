@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Budík</string>
+    <string name="day1">Pondělí</string>
+    <string name="day2">Úterý</string>
+    <string name="day3">Středa</string>
+    <string name="day4">Čtvrtek</string>
+    <string name="day5">Pátek</string>
+    <string name="day6">Sobota</string>
+    <string name="day7">Neděle</string>
+    <string name="select_time">Zvolte čas</string>
+    <string name="zero_time">00:00</string>
+</resources>
