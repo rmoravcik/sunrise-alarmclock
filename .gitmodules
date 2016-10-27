@@ -1,0 +1,3 @@
+[submodule "firmware/ds_rtc_lib"]
+path = firmware/ds_rtc_lib
+url = https://github.com/akafugu/ds_rtc_lib.git
