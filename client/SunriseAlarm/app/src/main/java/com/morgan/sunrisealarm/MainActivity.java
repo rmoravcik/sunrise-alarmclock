@@ -30,12 +30,16 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.app.TimePickerDialog;
 import android.view.View;
+import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.TimePicker;
 import android.util.Log;
 import android.widget.Toast;
+
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -106,6 +110,20 @@ public class MainActivity extends AppCompatActivity {
             switch (msg.what) {
                 case Constants.BLUETOOTHCLIENT_STATE_CHANGE:
                     Log.d(TAG, "BLUETOOTHCLIENT_STATE_CHANGE: " + msg.arg1);
+                    switch (msg.arg1) {
+                        case BluetoothClient.STATE_NONE:
+                            break;
+
+                        case BluetoothClient.STATE_CONNECTING:
+                            Command command =  new Command();
+                            command.setTime();
+                            break;
+
+                        case BluetoothClient.STATE_CONNECTED:
+                            break;
+
+                        default:
+                    }
                     break;
                 case Constants.BLUETOOTHCLIENT_READ:
                     break;
@@ -122,39 +140,20 @@ public class MainActivity extends AppCompatActivity {
 
         CompoundButton.OnCheckedChangeListener onOffSwitchChanged = new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                int dayTextId = 0;
-                int alarmTimeTextId = 0;
+                WidgetId widget = new WidgetId(buttonView.getId());
 
-                if (buttonView.getId() == R.id.switch_day1) {
-                        dayTextId = R.id.name_day1;
-                        alarmTimeTextId = R.id.alarm_day1;
-                } else if (buttonView.getId() == R.id.switch_day2) {
-                    dayTextId = R.id.name_day2;
-                    alarmTimeTextId = R.id.alarm_day2;
-                } else if (buttonView.getId() == R.id.switch_day3) {
-                    dayTextId = R.id.name_day3;
-                    alarmTimeTextId = R.id.alarm_day3;
-                } else if (buttonView.getId() == R.id.switch_day4) {
-                    dayTextId = R.id.name_day4;
-                    alarmTimeTextId = R.id.alarm_day4;
-                } else if (buttonView.getId() == R.id.switch_day5) {
-                    dayTextId = R.id.name_day5;
-                    alarmTimeTextId = R.id.alarm_day5;
-                } else if (buttonView.getId() == R.id.switch_day6) {
-                    dayTextId = R.id.name_day6;
-                    alarmTimeTextId = R.id.alarm_day6;
-                } else if (buttonView.getId() == R.id.switch_day7) {
-                    dayTextId = R.id.name_day7;
-                    alarmTimeTextId = R.id.alarm_day7;
-                }
-
-                TextView dayText = (TextView) findViewById (dayTextId);
-                TextView alarmTimeText = (TextView) findViewById (alarmTimeTextId);
+                TextView dayText = (TextView) findViewById (widget.getDayTextId());
+                TextView alarmTimeText = (TextView) findViewById (widget.getAlarmTextId());
 
                 if (isChecked) {
                     dayText.setEnabled(true);
                     alarmTimeText.setEnabled(true);
                     alarmTimeText.setTextColor(getResources().getColor(android.R.color.black));
+
+                    AlarmTime time = new AlarmTime(alarmTimeText.getText().toString());
+
+                    Command command = new Command();
+                    command.setAlarm(widget.getAlarmId(), time.getHour(), time.getHour());
                 } else {
                     dayText.setEnabled(false);
                     alarmTimeText.setEnabled(false);
@@ -162,6 +161,9 @@ public class MainActivity extends AppCompatActivity {
 
                     AlarmTime time = new AlarmTime(0, 0);
                     alarmTimeText.setText(time.getString());
+
+                    Command command = new Command();
+                    command.setAlarm(widget.getAlarmId(), Constants.HOUR_ALARM_OFF, Constants.MIN_ALARM_OFF);
                 }
             }
         };
@@ -181,36 +183,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void layoutClicked(View view) {
-        int alarmTextId = 0;
-        int switchId = 0;
+        final WidgetId widget = new WidgetId(view.getId());
 
-        if (view.getId() == R.id.layout_day1) {
-            alarmTextId = R.id.alarm_day1;
-            switchId = R.id.switch_day1;
-        } else if (view.getId() == R.id.layout_day2) {
-            alarmTextId = R.id.alarm_day2;
-            switchId = R.id.switch_day2;
-        } else if (view.getId() == R.id.layout_day3) {
-            alarmTextId = R.id.alarm_day3;
-            switchId = R.id.switch_day3;
-        } else if (view.getId() == R.id.layout_day4) {
-            alarmTextId = R.id.alarm_day4;
-            switchId = R.id.switch_day4;
-        } else if (view.getId() == R.id.layout_day5) {
-            alarmTextId = R.id.alarm_day5;
-            switchId = R.id.switch_day5;
-        } else if (view.getId() == R.id.layout_day6) {
-            alarmTextId = R.id.alarm_day6;
-            switchId = R.id.switch_day6;
-        } else if (view.getId() == R.id.layout_day7) {
-            alarmTextId = R.id.alarm_day7;
-            switchId = R.id.switch_day7;
-        }
-
-        Switch onOffSwitch = (Switch) findViewById (switchId);
+        Switch onOffSwitch = (Switch) findViewById (widget.getSwitchId());
         if (onOffSwitch.isChecked())
         {
-            final TextView alarmText = (TextView) findViewById (alarmTextId);
+            final TextView alarmText = (TextView) findViewById (widget.getAlarmTextId());
 
             AlarmTime time = new AlarmTime(alarmText.getText().toString());
             TimePickerDialog timePicker;
@@ -220,13 +198,79 @@ public class MainActivity extends AppCompatActivity {
                 public void onTimeSet(TimePicker timePicker, int selectedHour, int selectedMinute) {
                     AlarmTime time = new AlarmTime(selectedHour, selectedMinute);
                     alarmText.setText(time.getString());
+
+                    Command command = new Command();
+                    command.setAlarm(widget.getAlarmId(), selectedHour, selectedMinute);
                 }
             }, time.getHour(), time.getMin(), true);
             timePicker.show();
         }
     }
 
-                                                                                                                                            private class AlarmTime {
+private class WidgetId {
+    private int mAlarmId;
+    private int mAlarmTextId;
+    private int mDayTextId;
+    private int mSwitchId;
+
+    public WidgetId(int id)
+    {
+        if ((id == R.id.layout_day1) || (id == R.id.switch_day1)) {
+            mAlarmId = Constants.ALARM1;
+            mAlarmTextId = R.id.alarm_day1;
+            mDayTextId = R.id.alarm_day1;
+            mSwitchId = R.id.switch_day1;
+        } else if ((id == R.id.layout_day2) || (id == R.id.switch_day2)) {
+            mAlarmId = Constants.ALARM2;
+            mAlarmTextId = R.id.alarm_day2;
+            mDayTextId = R.id.alarm_day2;
+            mSwitchId = R.id.switch_day2;
+        } else if ((id == R.id.layout_day3) || (id == R.id.switch_day3)) {
+            mAlarmId = Constants.ALARM3;
+            mAlarmTextId = R.id.alarm_day3;
+            mDayTextId = R.id.alarm_day3;
+            mSwitchId = R.id.switch_day3;
+        } else if ((id == R.id.layout_day4) || (id == R.id.switch_day4)) {
+            mAlarmId = Constants.ALARM4;
+            mAlarmTextId = R.id.alarm_day4;
+            mDayTextId = R.id.alarm_day4;
+            mSwitchId = R.id.switch_day4;
+        } else if ((id == R.id.layout_day5) || (id == R.id.switch_day5)) {
+            mAlarmId = Constants.ALARM5;
+            mAlarmTextId = R.id.alarm_day5;
+            mDayTextId = R.id.alarm_day5;
+            mSwitchId = R.id.switch_day5;
+        } else if ((id == R.id.layout_day6) || (id == R.id.switch_day6)) {
+            mAlarmId = Constants.ALARM6;
+            mAlarmTextId = R.id.alarm_day6;
+            mDayTextId = R.id.alarm_day6;
+            mSwitchId = R.id.switch_day6;
+        } else if ((id == R.id.layout_day7) || (id == R.id.switch_day7)) {
+            mAlarmId = Constants.ALARM7;
+            mAlarmTextId = R.id.alarm_day7;
+            mDayTextId = R.id.alarm_day7;
+            mSwitchId = R.id.switch_day7;
+        }
+    }
+
+    int getAlarmId() {
+        return mAlarmId;
+    }
+
+    int getAlarmTextId() {
+        return mAlarmTextId;
+    }
+
+    int getDayTextId() {
+        return mDayTextId;
+    }
+
+    int getSwitchId() {
+        return mSwitchId;
+    }
+}
+
+private class AlarmTime {
         private int mHour = 0;
         private int mMin = 0;
 
@@ -254,9 +298,35 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private class AlarmConfiguration {
-        public void setAlarm(int alarm, int hour, int min)  {
+    private class Command {
+        public Command() {}
 
+        public Command(String response)
+        {
+
+        }
+
+        public void getStatus() {
+            String command = Constants.COMMAND_GET_STATUS + "\r\n";
+            mBluetoothClient.write(command.getBytes());
+        }
+
+        public void setAlarm(int alarm, int hour, int min)  {
+            String command = Constants.COMMAND_SET_ALARM +
+                    String.format("%d;%d;%d\r\n", alarm, hour, min);
+            mBluetoothClient.write(command.getBytes());
+        }
+
+        public void setTime()  {
+            Calendar calendar = Calendar.getInstance();
+            calendar.getTime();
+
+            SimpleDateFormat dateFormat = new SimpleDateFormat("HH;mm;ss;F;dd;MM;yyyy;");
+
+            String command = Constants.COMMAND_SET_DATE +
+                    dateFormat.format(calendar.getTime()).toString();
+
+            mBluetoothClient.write(command.getBytes());
         }
     }
 }

@@ -153,6 +153,8 @@ public class BluetoothClient {
     }
 
     public synchronized void write(byte[] out) {
+        Log.d(TAG, "write :" + out);
+
         ConnectedThread r;
 
         synchronized (this) {

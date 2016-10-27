@@ -28,6 +28,9 @@ public interface Constants {
     public static final int ALARM6 = 6;
     public static final int ALARM7 = 7;
 
+    public static final int HOUR_ALARM_OFF = 255;
+    public static final int MIN_ALARM_OFF = 255;
+
     public static final int BLUETOOTHCLIENT_STATE_CHANGE = 1;
     public static final int BLUETOOTHCLIENT_READ = 2;
     public static final int BLUETOOTHCLIENT_TOAST = 3;
@@ -37,5 +40,7 @@ public interface Constants {
     public static final String COMMAND_GET_STATUS = "STAT?";
     public static final String COMMAND_GET_STATUS_RSP = "STAT+";
     public static final String COMMAND_SET_ALARM = "ALARM+";
-    public static final String COMMAND_SET_ALARM_RSP = "OK";
+    public static final String COMMAND_SET_ALARM_RSP = "ALARM+OK";
+    public static final String COMMAND_SET_DATE = "DATE+";
+    public static final String COMMAND_SET_DATE_RSP = "DATE+OK";
 }
