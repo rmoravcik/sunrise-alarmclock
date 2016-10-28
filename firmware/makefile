@@ -30,6 +30,7 @@ FORMAT = ihex
 
 # List C source files here. (C dependencies are automatically generated.)
 SRC = main.c \
+      command.c \
       ds_rtc_lib/library-gcc/twi.c \
       ds_rtc_lib/library-gcc/twi-lowlevel.c \
       ds_rtc_lib/library-gcc/rtc.c \
