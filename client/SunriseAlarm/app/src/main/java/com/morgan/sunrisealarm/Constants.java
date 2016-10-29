@@ -20,22 +20,23 @@
 package com.morgan.sunrisealarm;
 
 public interface Constants {
-    public static final int ALARM1 = 1;
-    public static final int ALARM2 = 2;
-    public static final int ALARM3 = 3;
-    public static final int ALARM4 = 4;
-    public static final int ALARM5 = 5;
-    public static final int ALARM6 = 6;
-    public static final int ALARM7 = 7;
+    public static final int ALARM1 = 0;
+    public static final int ALARM2 = 1;
+    public static final int ALARM3 = 2;
+    public static final int ALARM4 = 3;
+    public static final int ALARM5 = 4;
+    public static final int ALARM6 = 5;
+    public static final int ALARM7 = 6;
 
-    public static final int HOUR_ALARM_OFF = 255;
-    public static final int MIN_ALARM_OFF = 255;
+    public static final int HOUR_ALARM_OFF = 99;
+    public static final int MIN_ALARM_OFF = 99;
 
     public static final int BLUETOOTHCLIENT_STATE_CHANGE = 1;
     public static final int BLUETOOTHCLIENT_READ = 2;
     public static final int BLUETOOTHCLIENT_TOAST = 3;
 
     public static final String TOAST = "toast";
+    public static final String READ = "read";
 
     public static final String COMMAND_GET_STATUS = "STAT?";
     public static final String COMMAND_GET_STATUS_RSP = "STAT+";

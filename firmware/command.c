@@ -24,7 +24,7 @@ static void command_parse(uint8_t len)
     if (strncmp(rxbuff, COMMAND_GET_STATUS, strlen(COMMAND_GET_STATUS)) == 0) {
         // STAT+HH:mm;HH:mm;HH:mm;HH:mm;HH:mm;HH:mm;HH:mm
         sprintf(txbuff, "%s%02u:%02u;%02u:%02u;%02u:%02u;%02u:%02u;" \
-                        "%02u:%02u;%02u:%02u;%02u:%02u\r\n",
+                        "%02u:%02u;%02u:%02u;%02u:%02u\n",
                         COMMAND_GET_STATUS_RSP,
                         conf.alarm[0].hour, conf.alarm[0].min,
                         conf.alarm[1].hour, conf.alarm[1].min,
@@ -45,7 +45,7 @@ static void command_parse(uint8_t len)
 
         status |= SET_ALARM | id;
 
-        sprintf(txbuff, "%s\r\n", COMMAND_SET_ALARM_RSP);
+        sprintf(txbuff, "%s\n", COMMAND_SET_ALARM_RSP);
         uartSendString(txbuff);
     } else if (strncmp(rxbuff, COMMAND_SET_DATE, strlen(COMMAND_SET_DATE)) == 0) {
         unsigned int hour, min, sec, wday, mday, mon, year;
@@ -67,11 +67,11 @@ static void command_parse(uint8_t len)
 
         status |= SET_DATE;
 
-        sprintf(txbuff, "%s\r\n", COMMAND_SET_DATE_RSP);
+        sprintf(txbuff, "%s\n", COMMAND_SET_DATE_RSP);
         uartSendString(txbuff);
     } else {
 #ifdef DEBUG
-        sprintf(txbuff, "UNKNOWN CMD: %s\r\n", rxbuff);
+        sprintf(txbuff, "UNKNOWN CMD: %s\n", rxbuff);
         uartSendString(txbuff);
 #endif
     }
@@ -84,7 +84,7 @@ void command_rx_handler(unsigned char c)
 
     rxbuff[i] = c;
 
-    if (rxbuff[i] == '\r') {
+    if (rxbuff[i] == '\n') {
         rxbuff[i] = '\0';
 
         len = i;

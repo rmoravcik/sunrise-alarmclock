@@ -109,23 +109,25 @@ public class MainActivity extends AppCompatActivity {
 
             switch (msg.what) {
                 case Constants.BLUETOOTHCLIENT_STATE_CHANGE:
-                    Log.d(TAG, "BLUETOOTHCLIENT_STATE_CHANGE: " + msg.arg1);
                     switch (msg.arg1) {
                         case BluetoothClient.STATE_NONE:
                             break;
 
                         case BluetoothClient.STATE_CONNECTING:
-                            Command command =  new Command();
-                            command.setTime();
                             break;
 
                         case BluetoothClient.STATE_CONNECTED:
+                            Command command =  new Command();
+                            command.getStatus();
                             break;
 
                         default:
                     }
                     break;
                 case Constants.BLUETOOTHCLIENT_READ:
+                    String response = msg.getData().getString(Constants.READ);
+
+                    Command command = new Command(response);
                     break;
                 case Constants.BLUETOOTHCLIENT_TOAST:
                     Toast.makeText(context, msg.getData().getString(Constants.TOAST), Toast.LENGTH_SHORT).show();
@@ -218,37 +220,37 @@ private class WidgetId {
         if ((id == R.id.layout_day1) || (id == R.id.switch_day1)) {
             mAlarmId = Constants.ALARM1;
             mAlarmTextId = R.id.alarm_day1;
-            mDayTextId = R.id.alarm_day1;
+            mDayTextId = R.id.name_day1;
             mSwitchId = R.id.switch_day1;
         } else if ((id == R.id.layout_day2) || (id == R.id.switch_day2)) {
             mAlarmId = Constants.ALARM2;
             mAlarmTextId = R.id.alarm_day2;
-            mDayTextId = R.id.alarm_day2;
+            mDayTextId = R.id.name_day2;
             mSwitchId = R.id.switch_day2;
         } else if ((id == R.id.layout_day3) || (id == R.id.switch_day3)) {
             mAlarmId = Constants.ALARM3;
             mAlarmTextId = R.id.alarm_day3;
-            mDayTextId = R.id.alarm_day3;
+            mDayTextId = R.id.name_day3;
             mSwitchId = R.id.switch_day3;
         } else if ((id == R.id.layout_day4) || (id == R.id.switch_day4)) {
             mAlarmId = Constants.ALARM4;
             mAlarmTextId = R.id.alarm_day4;
-            mDayTextId = R.id.alarm_day4;
+            mDayTextId = R.id.name_day4;
             mSwitchId = R.id.switch_day4;
         } else if ((id == R.id.layout_day5) || (id == R.id.switch_day5)) {
             mAlarmId = Constants.ALARM5;
             mAlarmTextId = R.id.alarm_day5;
-            mDayTextId = R.id.alarm_day5;
+            mDayTextId = R.id.name_day5;
             mSwitchId = R.id.switch_day5;
         } else if ((id == R.id.layout_day6) || (id == R.id.switch_day6)) {
             mAlarmId = Constants.ALARM6;
             mAlarmTextId = R.id.alarm_day6;
-            mDayTextId = R.id.alarm_day6;
+            mDayTextId = R.id.name_day6;
             mSwitchId = R.id.switch_day6;
         } else if ((id == R.id.layout_day7) || (id == R.id.switch_day7)) {
             mAlarmId = Constants.ALARM7;
             mAlarmTextId = R.id.alarm_day7;
-            mDayTextId = R.id.alarm_day7;
+            mDayTextId = R.id.name_day7;
             mSwitchId = R.id.switch_day7;
         }
     }
@@ -303,30 +305,39 @@ private class AlarmTime {
 
         public Command(String response)
         {
+            Log.d(TAG, response);
 
+            if (response.contains(Constants.COMMAND_GET_STATUS_RSP)) {
+                Log.i(TAG, "received COMMAND_GET_STATUS_RSP");
+            }
         }
 
         public void getStatus() {
-            String command = Constants.COMMAND_GET_STATUS + "\r\n";
-            mBluetoothClient.write(command.getBytes());
+            String command = Constants.COMMAND_GET_STATUS + "\n";
+            mBluetoothClient.write(command);
         }
 
         public void setAlarm(int alarm, int hour, int min)  {
-            String command = Constants.COMMAND_SET_ALARM +
-                    String.format("%d;%d;%d\r\n", alarm, hour, min);
-            mBluetoothClient.write(command.getBytes());
+            if (alarm == 4) {
+                String command = Constants.COMMAND_GET_STATUS + "\n";
+                mBluetoothClient.write(command);
+            } else {
+                String command = Constants.COMMAND_SET_ALARM +
+                        String.format("%d;%02d:%02d\n", alarm, hour, min);
+                mBluetoothClient.write(command);
+            }
         }
 
         public void setTime()  {
             Calendar calendar = Calendar.getInstance();
             calendar.getTime();
 
-            SimpleDateFormat dateFormat = new SimpleDateFormat("HH;mm;ss;F;dd;MM;yyyy;");
+            SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss;F;dd.MM.yyyy");
 
             String command = Constants.COMMAND_SET_DATE +
-                    dateFormat.format(calendar.getTime()).toString();
+                    dateFormat.format(calendar.getTime()).toString() + "\n";
 
-            mBluetoothClient.write(command.getBytes());
+            mBluetoothClient.write(command);
         }
     }
 }
