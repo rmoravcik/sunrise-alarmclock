@@ -90,6 +90,8 @@ int main(void)
 
     uartInit();
     uartSetBaudRate(115200);
+
+    uartFlushReceiveBuffer();
     uartSetRxHandler(&command_rx_handler);
 
     twi_init_master();
@@ -99,6 +101,8 @@ int main(void)
     rtc_SQW_irq_init();
     rtc_SQW_set_freq(FREQ_1);
     rtc_SQW_enable(true);
+
+    ssd1306_init();
 
     snooze_irq_init();
 

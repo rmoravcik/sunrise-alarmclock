@@ -21,6 +21,10 @@
 
 #include <avr/pgmspace.h>
 
+#ifdef DS_RTC_LIB
+#include "../../ds_rtc_lib/library-gcc/twi.h"
+#endif
+
 #include "ssd1306xled.h"
 #include "font6x8.h"
 
@@ -71,22 +75,33 @@ const uint8_t ssd1306_init_sequence [] PROGMEM = {	// Initialization Sequence
 
 void ssd1306_xfer_start(void)
 {
+#ifdef DS_RTC_LIB
+	twi_begin_transmission(SSD1306_SA);
+#else
 	DIGITAL_WRITE_HIGH(SSD1306_SCL);	// Set to HIGH
 	DIGITAL_WRITE_HIGH(SSD1306_SDA);	// Set to HIGH
 	DIGITAL_WRITE_LOW(SSD1306_SDA);		// Set to LOW
 	DIGITAL_WRITE_LOW(SSD1306_SCL);		// Set to LOW
+#endif
 }
 
 void ssd1306_xfer_stop(void)
 {
+#ifdef DS_RTC_LIB
+	twi_end_transmission();
+#else
 	DIGITAL_WRITE_LOW(SSD1306_SCL);		// Set to LOW
 	DIGITAL_WRITE_LOW(SSD1306_SDA);		// Set to LOW
 	DIGITAL_WRITE_HIGH(SSD1306_SCL);	// Set to HIGH
 	DIGITAL_WRITE_HIGH(SSD1306_SDA);	// Set to HIGH
+#endif
 }
 
 void ssd1306_send_byte(uint8_t byte)
 {
+#ifdef DS_RTC_LIB
+	twi_send_byte(byte);
+#else
 	uint8_t i;
 	for (i = 0; i < 8; i++)
 	{
@@ -101,6 +116,7 @@ void ssd1306_send_byte(uint8_t byte)
 	DIGITAL_WRITE_HIGH(SSD1306_SDA);
 	DIGITAL_WRITE_HIGH(SSD1306_SCL);
 	DIGITAL_WRITE_LOW(SSD1306_SCL);
+#endif
 }
 
 void ssd1306_send_command_start(void) {
@@ -145,8 +161,10 @@ void ssd1306_send_data(uint8_t byte)
 
 void ssd1306_init(void)
 {
+#ifndef DS_RTC_LIB
 	DDRB |= (1 << SSD1306_SDA);	// Set port as output
 	DDRB |= (1 << SSD1306_SCL);	// Set port as output
+#endif
 	
 	for (uint8_t i = 0; i < sizeof (ssd1306_init_sequence); i++) {
 		ssd1306_send_command(pgm_read_byte(&ssd1306_init_sequence[i]));

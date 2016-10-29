@@ -35,7 +35,9 @@ SRC = main.c \
       ds_rtc_lib/library-gcc/twi-lowlevel.c \
       ds_rtc_lib/library-gcc/rtc.c \
       ds_rtc_lib/library-gcc/test/buffer.c \
-      ds_rtc_lib/library-gcc/test/uart.c
+      ds_rtc_lib/library-gcc/test/uart.c \
+      ssd1306xled/ssd1306xled/ssd1306xled.c \
+      ssd1306xled/ssd1306xled/num2str.c
 
 # List Assembler source files here.
 # Make them always end in a capital .S.  Files ending in a lowercase .s
@@ -60,7 +62,7 @@ EXTRAINCDIRS =
 #  -Wall...:  warning level
 #  -Wa,...:   tell GCC to pass this to the assembler.
 #    -ahlms:  create assembler listing
-CFLAGS = -g -O$(OPT) -DF_CPU=$(F_CPU) -DVERSION=$(VERSION) -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums -Wall -Wstrict-prototypes -Wa,-adhlns=$(<:.c=.lst) $(patsubst %,-I%,$(EXTRAINCDIRS))
+CFLAGS = -g -O$(OPT) -DF_CPU=$(F_CPU) -DDS_RTC_LIB -DVERSION=$(VERSION) -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums -Wall -Wstrict-prototypes -Wa,-adhlns=$(<:.c=.lst) $(patsubst %,-I%,$(EXTRAINCDIRS))
 
 # Set a "language standard" compiler flag.
 #   Unremark just one line below to set the language standard to use.
