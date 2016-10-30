@@ -26,6 +26,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Handler;
 import android.os.Message;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.app.TimePickerDialog;
@@ -118,7 +119,7 @@ public class MainActivity extends AppCompatActivity {
 
                         case BluetoothClient.STATE_CONNECTED:
                             Command command =  new Command();
-                            command.getStatus();
+                            command.ping();
                             break;
 
                         default:
@@ -142,7 +143,9 @@ public class MainActivity extends AppCompatActivity {
 
         CompoundButton.OnCheckedChangeListener onOffSwitchChanged = new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                WidgetId widget = new WidgetId(buttonView.getId());
+                WidgetId widget = new WidgetId(buttonView);
+
+                Log.d(TAG, "OnCheckedChangeListener");
 
                 TextView dayText = (TextView) findViewById (widget.getDayTextId());
                 TextView alarmTimeText = (TextView) findViewById (widget.getAlarmTextId());
@@ -185,7 +188,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void layoutClicked(View view) {
-        final WidgetId widget = new WidgetId(view.getId());
+        final WidgetId widget = new WidgetId(view);
 
         Switch onOffSwitch = (Switch) findViewById (widget.getSwitchId());
         if (onOffSwitch.isChecked())
@@ -215,40 +218,63 @@ private class WidgetId {
     private int mDayTextId;
     private int mSwitchId;
 
-    public WidgetId(int id)
-    {
-        if ((id == R.id.layout_day1) || (id == R.id.switch_day1)) {
+    public WidgetId(View view) {
+        if ((view.getId() == R.id.layout_day1) ||
+                (view.getId() == R.id.switch_day1)) {
             mAlarmId = Constants.ALARM1;
+        } else if ((view.getId() == R.id.layout_day2) ||
+                (view.getId() == R.id.switch_day2)) {
+            mAlarmId = Constants.ALARM2;
+        } else if ((view.getId() == R.id.layout_day3) ||
+                (view.getId() == R.id.switch_day3)) {
+            mAlarmId = Constants.ALARM3;
+        } else if ((view.getId() == R.id.layout_day4) ||
+                (view.getId() == R.id.switch_day4)) {
+            mAlarmId = Constants.ALARM4;
+        } else if ((view.getId() == R.id.layout_day5) ||
+                (view.getId() == R.id.switch_day5)) {
+            mAlarmId = Constants.ALARM5;
+        } else if ((view.getId() == R.id.layout_day6) ||
+                (view.getId() == R.id.switch_day6)) {
+            mAlarmId = Constants.ALARM6;
+        } else if ((view.getId() == R.id.layout_day7) ||
+                (view.getId() == R.id.switch_day7)) {
+            mAlarmId = Constants.ALARM7;
+        }
+        init();
+    }
+
+    public WidgetId(int alarmId) {
+        mAlarmId = alarmId;
+        init();
+    }
+
+    private void init() {
+        if (mAlarmId == Constants.ALARM1) {
             mAlarmTextId = R.id.alarm_day1;
             mDayTextId = R.id.name_day1;
             mSwitchId = R.id.switch_day1;
-        } else if ((id == R.id.layout_day2) || (id == R.id.switch_day2)) {
-            mAlarmId = Constants.ALARM2;
+        } else if (mAlarmId == Constants.ALARM2) {
             mAlarmTextId = R.id.alarm_day2;
             mDayTextId = R.id.name_day2;
             mSwitchId = R.id.switch_day2;
-        } else if ((id == R.id.layout_day3) || (id == R.id.switch_day3)) {
-            mAlarmId = Constants.ALARM3;
+        } else if (mAlarmId == Constants.ALARM3) {
             mAlarmTextId = R.id.alarm_day3;
             mDayTextId = R.id.name_day3;
             mSwitchId = R.id.switch_day3;
-        } else if ((id == R.id.layout_day4) || (id == R.id.switch_day4)) {
-            mAlarmId = Constants.ALARM4;
+        } else if (mAlarmId == Constants.ALARM4) {
             mAlarmTextId = R.id.alarm_day4;
             mDayTextId = R.id.name_day4;
             mSwitchId = R.id.switch_day4;
-        } else if ((id == R.id.layout_day5) || (id == R.id.switch_day5)) {
-            mAlarmId = Constants.ALARM5;
+        } else if (mAlarmId == Constants.ALARM5) {
             mAlarmTextId = R.id.alarm_day5;
             mDayTextId = R.id.name_day5;
             mSwitchId = R.id.switch_day5;
-        } else if ((id == R.id.layout_day6) || (id == R.id.switch_day6)) {
-            mAlarmId = Constants.ALARM6;
+        } else if (mAlarmId == Constants.ALARM6) {
             mAlarmTextId = R.id.alarm_day6;
             mDayTextId = R.id.name_day6;
             mSwitchId = R.id.switch_day6;
-        } else if ((id == R.id.layout_day7) || (id == R.id.switch_day7)) {
-            mAlarmId = Constants.ALARM7;
+        } else if (mAlarmId == Constants.ALARM7) {
             mAlarmTextId = R.id.alarm_day7;
             mDayTextId = R.id.name_day7;
             mSwitchId = R.id.switch_day7;
@@ -305,11 +331,45 @@ private class AlarmTime {
 
         public Command(String response)
         {
-            Log.d(TAG, response);
-
-            if (response.contains(Constants.COMMAND_GET_STATUS_RSP)) {
+            if (response.contains(Constants.COMMAND_PING_RSP)) {
+                Log.i(TAG, "received COMMAND_PING_RSP");
+                setDate();
+            } else if (response.contains(Constants.COMMAND_GET_STATUS_RSP)) {
                 Log.i(TAG, "received COMMAND_GET_STATUS_RSP");
+                String tmp = response.replace(Constants.COMMAND_GET_STATUS_RSP, "");
+                String[] alarmList = tmp.split(";");
+
+                if (alarmList.length == Constants.ALARM_MAX) {
+                    for (int alarmId = Constants.ALARM1;
+                         alarmId < Constants.ALARM_MAX; alarmId++) {
+                        WidgetId widget = new WidgetId(alarmId);
+
+                        if (!alarmList[alarmId].equals(Constants.ALARM_OFF)) {
+                            Switch onOffSwitch =
+                                    (Switch) findViewById(widget.getSwitchId());
+                            TextView dayText =
+                                    (TextView) findViewById (widget.getDayTextId());
+                            TextView alarmTimeText =
+                                    (TextView) findViewById (widget.getAlarmTextId());
+
+                            onOffSwitch.setChecked(true);
+                            dayText.setEnabled(true);
+                            alarmTimeText.setEnabled(true);
+                            alarmTimeText.setTextColor(ContextCompat.getColor(
+                                    getApplicationContext(), android.R.color.black));
+                            alarmTimeText.setText(alarmList[alarmId]);
+                        }
+                    }
+                }
+            } else if (response.contains(Constants.COMMAND_SET_DATE_RSP)) {
+                Log.i(TAG, "received COMMAND_SET_DATE_RSP");
+                getStatus();
             }
+        }
+
+        public void ping() {
+            String command = Constants.COMMAND_PING + "\n";
+            mBluetoothClient.write(command);
         }
 
         public void getStatus() {
@@ -328,7 +388,7 @@ private class AlarmTime {
             }
         }
 
-        public void setTime()  {
+        public void setDate()  {
             Calendar calendar = Calendar.getInstance();
             calendar.getTime();
 

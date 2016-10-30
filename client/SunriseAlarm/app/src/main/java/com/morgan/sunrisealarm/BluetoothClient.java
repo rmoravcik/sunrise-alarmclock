@@ -176,7 +176,7 @@ public class BluetoothClient {
             BluetoothSocket tmp = null;
 
             try {
-                tmp = device.createRfcommSocketToServiceRecord(MY_UUID);
+                tmp = device.createInsecureRfcommSocketToServiceRecord(MY_UUID);
             } catch (IOException e) {
                 Log.e(TAG, "create socket failed...", e);
             }

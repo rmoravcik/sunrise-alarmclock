@@ -21,7 +21,10 @@ static void command_parse(uint8_t len)
 {
     char txbuff[TXBUFF_LEN];
 
-    if (strncmp(rxbuff, COMMAND_GET_STATUS, strlen(COMMAND_GET_STATUS)) == 0) {
+    if (strncmp(rxbuff, COMMAND_PING, strlen(COMMAND_PING)) == 0) {
+        sprintf(txbuff, "%s\n", COMMAND_PING_RSP);
+        uartSendString(txbuff);
+    } else if (strncmp(rxbuff, COMMAND_GET_STATUS, strlen(COMMAND_GET_STATUS)) == 0) {
         // STAT+HH:mm;HH:mm;HH:mm;HH:mm;HH:mm;HH:mm;HH:mm
         sprintf(txbuff, "%s%02u:%02u;%02u:%02u;%02u:%02u;%02u:%02u;" \
                         "%02u:%02u;%02u:%02u;%02u:%02u\n",
