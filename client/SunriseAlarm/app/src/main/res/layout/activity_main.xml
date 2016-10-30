@@ -56,7 +56,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:id="@+id/switch_day1"
-                    android:checked="false" />
+                    android:checked="false"
+                    android:enabled="false" />
 
             </LinearLayout>
 
@@ -96,7 +97,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:id="@+id/switch_day2"
-                    android:checked="false" />
+                    android:checked="false"
+                    android:enabled="false" />
 
             </LinearLayout>
 
@@ -136,7 +138,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:id="@+id/switch_day3"
-                    android:checked="false" />
+                    android:checked="false"
+                    android:enabled="false" />
 
             </LinearLayout>
 
@@ -176,7 +179,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:id="@+id/switch_day4"
-                    android:checked="false" />
+                    android:checked="false"
+                    android:enabled="false" />
 
             </LinearLayout>
 
@@ -216,7 +220,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:id="@+id/switch_day5"
-                    android:checked="false" />
+                    android:checked="false"
+                    android:enabled="false" />
 
             </LinearLayout>
 
@@ -256,7 +261,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:id="@+id/switch_day6"
-                    android:checked="false" />
+                    android:checked="false"
+                    android:enabled="false" />
 
             </LinearLayout>
 
@@ -296,7 +302,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:id="@+id/switch_day7"
-                    android:checked="false" />
+                    android:checked="false"
+                    android:enabled="false" />
 
             </LinearLayout>
 

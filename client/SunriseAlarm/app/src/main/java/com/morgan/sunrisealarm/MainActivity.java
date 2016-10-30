@@ -344,9 +344,12 @@ private class AlarmTime {
                          alarmId < Constants.ALARM_MAX; alarmId++) {
                         WidgetId widget = new WidgetId(alarmId);
 
+                        Switch onOffSwitch =
+                                (Switch) findViewById(widget.getSwitchId());
+
+                        onOffSwitch.setEnabled(true);
+
                         if (!alarmList[alarmId].equals(Constants.ALARM_OFF)) {
-                            Switch onOffSwitch =
-                                    (Switch) findViewById(widget.getSwitchId());
                             TextView dayText =
                                     (TextView) findViewById (widget.getDayTextId());
                             TextView alarmTimeText =
@@ -378,14 +381,9 @@ private class AlarmTime {
         }
 
         public void setAlarm(int alarm, int hour, int min)  {
-            if (alarm == 4) {
-                String command = Constants.COMMAND_GET_STATUS + "\n";
-                mBluetoothClient.write(command);
-            } else {
-                String command = Constants.COMMAND_SET_ALARM +
-                        String.format("%d;%02d:%02d\n", alarm, hour, min);
-                mBluetoothClient.write(command);
-            }
+            String command = Constants.COMMAND_SET_ALARM +
+                    String.format("%d;%02d:%02d\n", alarm, hour, min);
+            mBluetoothClient.write(command);
         }
 
         public void setDate()  {
