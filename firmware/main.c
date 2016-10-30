@@ -33,6 +33,7 @@ static conf_t EEMEM eeprom_conf;
 conf_t conf;
 
 uint16_t status = 0;
+uint8_t wday = 0;
 
 struct tm set_time;
 
@@ -43,7 +44,42 @@ ISR(INT1_vect, ISR_NOBLOCK)
 
 ISR(PCINT1_vect, ISR_NOBLOCK)
 {
-    uartSendString("Tick!\r\n");
+    struct tm* time = NULL;
+#ifdef DEBUG
+    char buf[50];
+#endif
+
+    time = rtc_get_time();
+#ifdef DEBUG
+    sprintf(buf, "Time: %02d:%02d:%02d\r\n", time->hour, time->min, time->sec);
+    uartSendString(buf);
+#endif
+
+    if (time->wday != wday) {
+        if ((conf.alarm[WDAY_TO_ID(time->wday)].hour != ALARM_OFF_HOUR) &&
+            (conf.alarm[WDAY_TO_ID(time->wday)].min != ALARM_OFF_MIN)) {
+            rtc_set_alarm_s(conf.alarm[WDAY_TO_ID(time->wday)].hour,
+                            conf.alarm[WDAY_TO_ID(time->wday)].min,
+                            0);
+
+#ifdef DEBUG
+            sprintf(buf, "SET ALARM: %02d:%02d:%02d\r\n",
+                    conf.alarm[time->wday - 1].hour,
+                    conf.alarm[time->wday - 1].min,
+                    0);
+            uartSendString(buf);
+#endif
+        }
+
+        wday = time->wday;
+    }
+
+    if (rtc_check_alarm()) {
+#ifdef DEBUG
+        uartSendString("ALARM!\r\n");
+#endif
+        // FIXME
+    }
 }
 
 void rtc_SQW_irq_init(void)
@@ -82,8 +118,6 @@ void eeprom_init(void)
 
 int main(void)
 {
-    struct tm* time = NULL;
-    uint8_t wday = 0;
 #ifdef DEBUG
     char buf[50];
 #endif
@@ -99,8 +133,8 @@ int main(void)
     rtc_init();
 
     rtc_SQW_irq_init();
-    rtc_SQW_set_freq(FREQ_1);
     rtc_SQW_enable(true);
+    rtc_SQW_set_freq(FREQ_1);
 
     ssd1306_init();
 
@@ -111,8 +145,6 @@ int main(void)
     sei();
 
     while (1) {
-        time = rtc_get_time();
-
         if (status & SET_ALARM) {
             uint8_t id = status & SET_ALARM_ID_MASK;
 
@@ -151,37 +183,6 @@ int main(void)
 
             rtc_set_time(&set_time);
             status &= ~SET_DATE;
-        }
-
-#ifdef DEBUG
-        sprintf(buf, "Time: %02d:%02d:%02d\r\n", time->hour, time->min, time->sec);
-        uartSendString(buf);
-#endif
-
-        if (time->wday != wday) {
-            if ((conf.alarm[WDAY_TO_ID(time->wday)].hour != ALARM_OFF_HOUR) &&
-                (conf.alarm[WDAY_TO_ID(time->wday)].min != ALARM_OFF_MIN)) {
-                rtc_set_alarm_s(conf.alarm[WDAY_TO_ID(time->wday)].hour,
-                                conf.alarm[WDAY_TO_ID(time->wday)].min,
-                                0);
-
-#ifdef DEBUG
-                sprintf(buf, "SET ALARM: %02d:%02d:%02d\r\n",
-                        conf.alarm[time->wday - 1].hour,
-                        conf.alarm[time->wday - 1].min,
-                        0);
-                uartSendString(buf);
-#endif
-            }
-
-            wday = time->wday;
-        }
-
-        if (rtc_check_alarm()) {
-#ifdef DEBUG
-            uartSendString("ALARM!\r\n");
-#endif
-            // FIXME
         }
 
         _delay_ms(500);
