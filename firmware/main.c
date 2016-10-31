@@ -21,13 +21,13 @@
 #include <util/delay.h>
 
 #include "ds_rtc_lib/library-gcc/twi.h"
-#include "ds_rtc_lib/library-gcc/rtc.h"
 #include "ds_rtc_lib/library-gcc/test/uart.h"
 
 #include "ssd1306xled/ssd1306xled/ssd1306xled.h"
 
 #include "command.h"
 #include "common.h"
+#include "rtc2.h"
 
 static conf_t EEMEM eeprom_conf;
 conf_t conf;
@@ -49,18 +49,24 @@ ISR(PCINT1_vect, ISR_NOBLOCK)
     char buf[50];
 #endif
 
-    time = rtc_get_time();
+    time = rtc2_get_time();
 #ifdef DEBUG
     sprintf(buf, "Time: %02d:%02d:%02d\r\n", time->hour, time->min, time->sec);
     uartSendString(buf);
 #endif
 
+    if ((time->hour == 23) && (time->min == (60 - PREALARM_MIN)) &&
+        (time->sec == 0)) {
+        if ((conf.alarm[WDAY_TO_ID(time->wday + 1)].hour != ALARM_OFF_HOUR) &&
+            (conf.alarm[WDAY_TO_ID(time->wday + 1)].min != ALARM_OFF_MIN)) {
+        }
+    }
+
     if (time->wday != wday) {
         if ((conf.alarm[WDAY_TO_ID(time->wday)].hour != ALARM_OFF_HOUR) &&
             (conf.alarm[WDAY_TO_ID(time->wday)].min != ALARM_OFF_MIN)) {
-            rtc_set_alarm_s(conf.alarm[WDAY_TO_ID(time->wday)].hour,
-                            conf.alarm[WDAY_TO_ID(time->wday)].min,
-                            0);
+            rtc2_set_alarm(conf.alarm[WDAY_TO_ID(time->wday)].hour,
+                            conf.alarm[WDAY_TO_ID(time->wday)].min);
 
 #ifdef DEBUG
             sprintf(buf, "SET ALARM: %02d:%02d:%02d\r\n",
@@ -74,20 +80,19 @@ ISR(PCINT1_vect, ISR_NOBLOCK)
         wday = time->wday;
     }
 
-    if (rtc_check_alarm()) {
+    if (rtc2_check_prealarm(time)) {
+#ifdef DEBUG
+        uartSendString("PREALARM!\r\n");
+#endif
+        // FIXME
+    }
+
+    if (rtc2_check_alarm(time)) {
 #ifdef DEBUG
         uartSendString("ALARM!\r\n");
 #endif
         // FIXME
     }
-}
-
-void rtc_SQW_irq_init(void)
-{
-    DDRC &= ~_BV(PC2);
-
-    PCMSK1 |= _BV(PCINT10);
-    PCICR |= _BV(PCIE1);
 }
 
 void snooze_irq_init(void)
@@ -130,11 +135,7 @@ int main(void)
 
     twi_init_master();
 
-    rtc_init();
-
-    rtc_SQW_irq_init();
-    rtc_SQW_enable(true);
-    rtc_SQW_set_freq(FREQ_1);
+    rtc2_init();
 
     ssd1306_init();
 
@@ -162,11 +163,33 @@ int main(void)
             if (id == WDAY_TO_ID(wday)) {
                 if ((conf.alarm[id].hour != ALARM_OFF_HOUR) &&
                     (conf.alarm[id].min != ALARM_OFF_MIN)) {
-                    rtc_set_alarm_s(conf.alarm[id].hour,
-                                    conf.alarm[id].min,
-                                    0);
+                    uint8_t prealarm_hour, prealarm_min;
+
+                    if (conf.alarm[id].min < PREALARM_MIN) {
+                        prealarm_min = 60 - PREALARM_MIN + conf.alarm[id].min;
+
+                        if (conf.alarm[id].hour == 0) {
+                            prealarm_hour = 23;
+                        } else {
+                            prealarm_hour = conf.alarm[id].hour - 1;
+                        }
+                    } else {
+                        prealarm_min = conf.alarm[id].min - PREALARM_MIN;
+                        prealarm_hour = conf.alarm[id].hour;
+                    }
+
+#ifdef DEBUG
+                    sprintf(buf, "SET PREALARM%d: Time %02u:%02u\r\n",
+                            id, prealarm_hour, prealarm_min);
+                    uartSendString(buf);
+#endif
+                    rtc2_set_prealarm(prealarm_hour,
+                                      prealarm_min);
+                    rtc2_set_alarm(conf.alarm[id].hour,
+                                   conf.alarm[id].min);
                 } else {
-                    rtc_reset_alarm();
+                    rtc2_reset_prealarm();
+                    rtc2_reset_alarm();
                 }
             }
 
@@ -181,7 +204,7 @@ int main(void)
             uartSendString(buf);
 #endif
 
-            rtc_set_time(&set_time);
+            rtc2_set_time(&set_time);
             status &= ~SET_DATE;
         }
 

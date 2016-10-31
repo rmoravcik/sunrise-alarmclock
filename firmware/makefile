@@ -31,6 +31,7 @@ FORMAT = ihex
 # List C source files here. (C dependencies are automatically generated.)
 SRC = main.c \
       command.c \
+      rtc2.c \
       ds_rtc_lib/library-gcc/twi.c \
       ds_rtc_lib/library-gcc/twi-lowlevel.c \
       ds_rtc_lib/library-gcc/rtc.c \
@@ -67,7 +68,7 @@ CFLAGS = -g -O$(OPT) -DF_CPU=$(F_CPU) -DDS_RTC_LIB -DVERSION=$(VERSION) -funsign
 # Set a "language standard" compiler flag.
 #   Unremark just one line below to set the language standard to use.
 #   gnu99 = C99 + GNU extensions. See GCC manual for more information.
-CFLAGS += -std=gnu99
+CFLAGS += -std=gnu99 -ffunction-sections -fdata-sections
 
 # Optional assembler flags.
 #  -Wa,...:   tell GCC to pass this to the assembler.
@@ -82,7 +83,7 @@ ASFLAGS = -Wa,-adhlns=$(<:.S=.lst),-gstabs
 #  -Wl,...:   tell GCC to pass this to linker.
 #  -Map:      create map file
 #  --cref:    add cross reference to  map file
-LDFLAGS = -Wl,-Map=$(TARGET).map,--cref
+LDFLAGS = -Wl,-Map=$(TARGET).map,--cref -Wl,-gc-sections
 
 # Programming support using avrdude. Settings and variables.
 AVRDUDE_WRITE_FLASH = -U flash:w:$(TARGET).hex

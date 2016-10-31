@@ -8,6 +8,8 @@
 #define ALARM_OFF_HOUR 99
 #define ALARM_OFF_MIN 99
 
+#define PREALARM_MIN 30
+
 #define COMMAND_PING "PING?"
 #define COMMAND_PING_RSP "PONG+OK"
 
