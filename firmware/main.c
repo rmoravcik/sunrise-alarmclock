@@ -27,6 +27,7 @@
 
 #include "command.h"
 #include "common.h"
+#include "led.h"
 #include "rtc2.h"
 
 static conf_t EEMEM eeprom_conf;
@@ -140,6 +141,8 @@ int main(void)
     rtc2_init();
 
     ssd1306_init();
+
+    led_init();
 
     snooze_irq_init();
 

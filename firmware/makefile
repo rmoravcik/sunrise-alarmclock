@@ -31,6 +31,7 @@ FORMAT = ihex
 # List C source files here. (C dependencies are automatically generated.)
 SRC = main.c \
       command.c \
+      led.c \
       rtc2.c \
       ds_rtc_lib/library-gcc/twi.c \
       ds_rtc_lib/library-gcc/twi-lowlevel.c \
@@ -38,7 +39,8 @@ SRC = main.c \
       ds_rtc_lib/library-gcc/test/buffer.c \
       ds_rtc_lib/library-gcc/test/uart.c \
       ssd1306xled/ssd1306xled/ssd1306xled.c \
-      ssd1306xled/ssd1306xled/num2str.c
+      ssd1306xled/ssd1306xled/num2str.c \
+      light_ws2812/light_ws2812_AVR/Light_WS2812/light_ws2812.c
 
 # List Assembler source files here.
 # Make them always end in a capital .S.  Files ending in a lowercase .s
