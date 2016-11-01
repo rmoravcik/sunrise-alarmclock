@@ -9,7 +9,7 @@
 
 # Microcontroller Type
 MCU = atmega328p
-F_CPU = 16000000
+F_CPU = 8000000
 
 # Target file name (without extension).
 TARGET = sunrise_alarmclock

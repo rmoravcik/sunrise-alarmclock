@@ -127,8 +127,10 @@ int main(void)
     char buf[50];
 #endif
 
+    OSCCAL = 0x8f;
+
     uartInit();
-    uartSetBaudRate(115200);
+    uartSetBaudRate(38400);
 
     uartFlushReceiveBuffer();
     uartSetRxHandler(&command_rx_handler);
