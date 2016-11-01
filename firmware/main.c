@@ -41,11 +41,13 @@ struct tm set_time;
 ISR(INT1_vect, ISR_NOBLOCK)
 {
     uartSendString("Snooze!\r\n");
+    status |= PREALARM;
 }
 
 ISR(PCINT1_vect, ISR_NOBLOCK)
 {
     struct tm* time = NULL;
+    static uint16_t period = 0;
 #ifdef DEBUG
     char buf[50];
 #endif
@@ -93,6 +95,11 @@ ISR(PCINT1_vect, ISR_NOBLOCK)
         uartSendString("ALARM!\r\n");
 #endif
         // FIXME
+    }
+
+    if (status & PREALARM) {
+        led_sunrise(period);
+        period++;
     }
 }
 

@@ -8,7 +8,7 @@
 #define ALARM_OFF_HOUR 99
 #define ALARM_OFF_MIN 99
 
-#define PREALARM_MIN 30
+#define PREALARM_MIN 20
 
 #define COMMAND_PING "PING?"
 #define COMMAND_PING_RSP "PONG+OK"
@@ -31,9 +31,10 @@ typedef struct {
     alarm_time_t alarm[7];
 } conf_t;
 
-#define SET_ALARM_ID_MASK 0x07
-#define SET_ALARM 0x10
-#define SET_DATE 0x20
+#define SET_ALARM_ID_MASK	0x07
+#define SET_ALARM		0x10
+#define SET_DATE		0x20
+#define PREALARM		0x40
 
 #define WDAY_TO_ID(x) (x - 1)
 
