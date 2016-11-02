@@ -10,4 +10,8 @@
     <string name="day7">Neděle</string>
     <string name="select_time">Zvolte čas</string>
     <string name="zero_time">00:00</string>
+    <string name="unable_connect_device">Nelze se připojit k zařízení</string>
+    <string name="connection_lost">Připojení k zařízení bylo ztraceno</string>
+    <string name="bluetooth_not_available">Bluetooth není k dispozici</string>
+    <string name="connecting_please_wait">Pripojuji. Prosím, čekejte...</string>
 </resources>

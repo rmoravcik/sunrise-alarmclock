@@ -12,4 +12,5 @@
     <string name="bluetooth_not_available">Bluetooth is not available</string>
     <string name="connection_lost">Device connection was lost</string>
     <string name="zero_time">00:00</string>
+    <string name="connecting_please_wait">Connecting. Please wait...</string>
 </resources>

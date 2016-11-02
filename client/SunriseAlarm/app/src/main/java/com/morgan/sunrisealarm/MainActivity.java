@@ -20,6 +20,7 @@
 package com.morgan.sunrisealarm;
 
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
@@ -52,6 +53,13 @@ public class MainActivity extends AppCompatActivity {
 
     private BluetoothAdapter mBluetoothAdapter = null;
     private BluetoothClient mBluetoothClient = null;
+
+    private static boolean mWaitingAck = false;
+    private static int mWaitingAckId = -1;
+
+    CompoundButton.OnCheckedChangeListener mOnOffSwitchChanged;
+
+    ProgressDialog mDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -115,10 +123,16 @@ public class MainActivity extends AppCompatActivity {
                             break;
 
                         case BluetoothClient.STATE_CONNECTING:
+                            mDialog = new ProgressDialog(MainActivity.this);
+                            mDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+                            mDialog.setMessage(getString(R.string.connecting_please_wait));
+                            mDialog.setIndeterminate(true);
+                            mDialog.setCanceledOnTouchOutside(false);
+                            mDialog.show();
                             break;
 
                         case BluetoothClient.STATE_CONNECTED:
-                            Command command =  new Command();
+                            Command command = new Command();
                             command.ping();
                             break;
 
@@ -130,6 +144,20 @@ public class MainActivity extends AppCompatActivity {
 
                     Command command = new Command(response);
                     break;
+                case Constants.BLUETOOTHCLIENT_WRITE:
+                    if (mWaitingAck) {
+                        Command command_retry = new Command();
+                        switch (mWaitingAckId) {
+                            case Constants.COMMAND_PING_RSP_ID:
+                                command_retry.ping();
+                                break;
+                            case Constants.COMMAND_GET_STATUS_RSP_ID:
+                                command_retry.getStatus();
+                                break;
+                            default:
+                        }
+                    }
+                    break;
                 case Constants.BLUETOOTHCLIENT_TOAST:
                     Toast.makeText(context, msg.getData().getString(Constants.TOAST), Toast.LENGTH_SHORT).show();
                     break;
@@ -137,11 +165,10 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
-
     private void setupClient() {
         Log.d(TAG, "setupClient()");
 
-        CompoundButton.OnCheckedChangeListener onOffSwitchChanged = new CompoundButton.OnCheckedChangeListener() {
+        mOnOffSwitchChanged = new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 WidgetId widget = new WidgetId(buttonView);
 
@@ -172,14 +199,6 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         };
-
-        ((Switch) findViewById(R.id.switch_day1)).setOnCheckedChangeListener(onOffSwitchChanged);
-        ((Switch) findViewById(R.id.switch_day2)).setOnCheckedChangeListener(onOffSwitchChanged);
-        ((Switch) findViewById(R.id.switch_day3)).setOnCheckedChangeListener(onOffSwitchChanged);
-        ((Switch) findViewById(R.id.switch_day4)).setOnCheckedChangeListener(onOffSwitchChanged);
-        ((Switch) findViewById(R.id.switch_day5)).setOnCheckedChangeListener(onOffSwitchChanged);
-        ((Switch) findViewById(R.id.switch_day6)).setOnCheckedChangeListener(onOffSwitchChanged);
-        ((Switch) findViewById(R.id.switch_day7)).setOnCheckedChangeListener(onOffSwitchChanged);
 
         mBluetoothClient = new BluetoothClient(getApplicationContext(), mHandler);
 
@@ -333,13 +352,18 @@ private class AlarmTime {
         {
             if (response.contains(Constants.COMMAND_PING_RSP)) {
                 Log.i(TAG, "received COMMAND_PING_RSP");
-                setDate();
+                mWaitingAck = false;
+                mWaitingAckId = -1;
+                getStatus();
             } else if (response.contains(Constants.COMMAND_GET_STATUS_RSP)) {
                 Log.i(TAG, "received COMMAND_GET_STATUS_RSP");
                 String tmp = response.replace(Constants.COMMAND_GET_STATUS_RSP, "");
                 String[] alarmList = tmp.split(";");
 
                 if (alarmList.length == Constants.ALARM_MAX) {
+                    mWaitingAck = false;
+                    mWaitingAckId = -1;
+
                     for (int alarmId = Constants.ALARM1;
                          alarmId < Constants.ALARM_MAX; alarmId++) {
                         WidgetId widget = new WidgetId(alarmId);
@@ -355,34 +379,43 @@ private class AlarmTime {
                             TextView alarmTimeText =
                                     (TextView) findViewById (widget.getAlarmTextId());
 
-                            onOffSwitch.setChecked(true);
                             dayText.setEnabled(true);
                             alarmTimeText.setEnabled(true);
                             alarmTimeText.setTextColor(ContextCompat.getColor(
                                     getApplicationContext(), android.R.color.black));
                             alarmTimeText.setText(alarmList[alarmId]);
+                            onOffSwitch.setChecked(true);
                         }
+                        onOffSwitch.setOnCheckedChangeListener(mOnOffSwitchChanged);
                     }
+                    mDialog.dismiss();
+                    setDate();
                 }
             } else if (response.contains(Constants.COMMAND_SET_DATE_RSP)) {
                 Log.i(TAG, "received COMMAND_SET_DATE_RSP");
-                getStatus();
+                mWaitingAck = false;
+                mWaitingAckId = -1;
             }
         }
 
         public void ping() {
             String command = Constants.COMMAND_PING + "\n";
+            mWaitingAck = true;
+            mWaitingAckId = Constants.COMMAND_PING_RSP_ID;
             mBluetoothClient.write(command);
         }
 
         public void getStatus() {
             String command = Constants.COMMAND_GET_STATUS + "\n";
+            mWaitingAck = true;
+            mWaitingAckId = Constants.COMMAND_GET_STATUS_RSP_ID;
             mBluetoothClient.write(command);
         }
 
         public void setAlarm(int alarm, int hour, int min)  {
             String command = Constants.COMMAND_SET_ALARM +
                     String.format("%d;%02d:%02d\n", alarm, hour, min);
+            mWaitingAck = true;
             mBluetoothClient.write(command);
         }
 
@@ -395,6 +428,7 @@ private class AlarmTime {
             String command = Constants.COMMAND_SET_DATE +
                     dateFormat.format(calendar.getTime()).toString() + "\n";
 
+            mWaitingAck = true;
             mBluetoothClient.write(command);
         }
     }

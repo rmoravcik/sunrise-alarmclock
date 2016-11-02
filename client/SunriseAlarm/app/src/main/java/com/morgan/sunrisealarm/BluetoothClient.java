@@ -165,6 +165,9 @@ public class BluetoothClient {
         }
 
         r.write(out);
+
+        Message msg = mHandler.obtainMessage(Constants.BLUETOOTHCLIENT_WRITE);
+        mHandler.sendMessageDelayed(msg, 500);
     }
 
     private class ConnectThread extends Thread {

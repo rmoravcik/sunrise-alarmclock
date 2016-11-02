@@ -36,7 +36,8 @@ public interface Constants {
 
     public static final int BLUETOOTHCLIENT_STATE_CHANGE = 1;
     public static final int BLUETOOTHCLIENT_READ = 2;
-    public static final int BLUETOOTHCLIENT_TOAST = 3;
+    public static final int BLUETOOTHCLIENT_WRITE = 3;
+    public static final int BLUETOOTHCLIENT_TOAST = 4;
 
     public static final String READ = "read";
     public static final String TOAST = "toast";
@@ -49,4 +50,13 @@ public interface Constants {
     public static final String COMMAND_SET_ALARM_RSP = "ALARM+OK";
     public static final String COMMAND_SET_DATE = "DATE+";
     public static final String COMMAND_SET_DATE_RSP = "DATE+OK";
+
+    public static final int COMMAND_PING_ID = 0;
+    public static final int COMMAND_PING_RSP_ID = 1;
+    public static final int COMMAND_GET_STATUS_ID = 2;
+    public static final int COMMAND_GET_STATUS_RSP_ID = 3;
+    public static final int COMMAND_SET_ALARM_ID = 4;
+    public static final int COMMAND_SET_ALARM_RSP_ID = 5;
+    public static final int COMMAND_SET_DATE_ID = 6;
+    public static final int COMMAND_SET_DATE_RSP_ID = 7;
 }
