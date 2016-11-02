@@ -13,15 +13,7 @@ struct cRGB leds[12];
 
 void led_init(void)
 {
-    uint8_t i = 0;
-
-    for (i = 0; i < NUM_LEDS; i++) {
-        leds[i].r = 0;
-        leds[i].g = 0;
-        leds[i].b = 0;
-    }
-
-    ws2812_setleds(leds, 12);
+    led_off(0);
 }
 
 void led_sunrise(uint16_t period)
@@ -55,15 +47,43 @@ void led_sunrise(uint16_t period)
     }
 
 #ifdef DEBUG
-    sprintf(buf, "led_sunrise: period=%4u, rgb(%03u,%03u,%03u)\r\n",
-            period, red, green, blue);
-    uartSendString(buf);
+    if (debug & DEBUG_LED) {
+        sprintf(buf, "led_sunrise: period=%4u, rgb(%03u,%03u,%03u)\r\n",
+                period, red, green, blue);
+        uartSendString(buf);
+    }
 #endif
 
     for (i = 0; i < NUM_LEDS; i++) {
         leds[i].r = red;
         leds[i].g = green;
         leds[i].b = blue;
+    }
+
+    ws2812_setleds(leds, 12);
+}
+
+void led_on(void)
+{
+    uint8_t i = 0;
+
+    for (i = 0; i < NUM_LEDS; i++) {
+        leds[i].r = 255;
+        leds[i].g = 255;
+        leds[i].b = 255;
+    }
+
+    ws2812_setleds(leds, 12);
+}
+
+void led_off(uint16_t period)
+{
+    uint8_t i = 0;
+
+    for (i = 0; i < NUM_LEDS; i++) {
+        leds[i].r = 0;
+        leds[i].g = 0;
+        leds[i].b = 0;
     }
 
     ws2812_setleds(leds, 12);

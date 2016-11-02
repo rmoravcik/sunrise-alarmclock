@@ -74,8 +74,10 @@ static void command_parse(uint8_t len)
         uartSendString(txbuff);
     } else {
 #ifdef DEBUG
-        sprintf(txbuff, "UNKNOWN CMD: %s\n", rxbuff);
-        uartSendString(txbuff);
+        if (debug & DEBUG_COMMAND) {
+            sprintf(txbuff, "UNKNOWN CMD: %s\n", rxbuff);
+            uartSendString(txbuff);
+        }
 #endif
     }
 }

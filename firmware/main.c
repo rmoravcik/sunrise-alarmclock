@@ -30,38 +30,80 @@
 #include "led.h"
 #include "rtc2.h"
 
+#ifdef DEBUG
+uint8_t debug;
+#endif
+
 static conf_t EEMEM eeprom_conf;
 conf_t conf;
 
-volatile uint16_t status = 0;
+volatile uint32_t status = 0;
+volatile uint16_t period = 0;
 volatile uint8_t wday = 0;
 
 struct tm set_time;
 
+void calc_prealarm_time(uint8_t hour, uint8_t min,
+                        uint8_t *prealarm_hour, uint8_t *prealarm_min)
+{
+    if (min < PREALARM_RUNNING_MIN) {
+        *prealarm_min = 60 - PREALARM_RUNNING_MIN + min;
+
+        if (hour == 0) {
+            *prealarm_hour = 23;
+        } else {
+            *prealarm_hour = hour - 1;
+        }
+    } else {
+        *prealarm_min = min - PREALARM_RUNNING_MIN;
+        *prealarm_hour = hour;
+    }
+}
+
 ISR(INT1_vect, ISR_NOBLOCK)
 {
-    uartSendString("Snooze!\r\n");
-    status |= PREALARM;
+    // REMOVEME: JUST FOR a TEST
+    status |= PREALARM_RUNNING;
+
+    if (status & (PREALARM_RUNNING | ALARM_RUNNING)) {
+#ifdef DEBUG
+        if (debug & DEBUG_FSM) {
+            uartSendString("INT1_vect(): Reqest to stop PREALARM/ALARM\r\n");
+        }
+#endif
+        status |= ALARM_STOP_REQUEST;
+    } else {
+        // FIXME: Just show time on display
+    }
 }
 
 ISR(PCINT1_vect, ISR_NOBLOCK)
 {
     struct tm* time = NULL;
-    static uint16_t period = 0;
 #ifdef DEBUG
     char buf[50];
 #endif
 
     time = rtc2_get_time();
 #ifdef DEBUG
-    sprintf(buf, "Time: %02d:%02d:%02d\r\n", time->hour, time->min, time->sec);
-    uartSendString(buf);
+    if (debug & DEBUG_RTC) {
+        sprintf(buf, "rtc2_get_time(): %02d:%02d:%02d\r\n", time->hour, time->min, time->sec);
+        uartSendString(buf);
+    }
 #endif
 
-    if ((time->hour == 23) && (time->min == (60 - PREALARM_MIN)) &&
+    if ((time->hour == 23) && (time->min == (60 - PREALARM_RUNNING_MIN)) &&
         (time->sec == 0)) {
         if ((conf.alarm[WDAY_TO_ID(time->wday + 1)].hour != ALARM_OFF_HOUR) &&
             (conf.alarm[WDAY_TO_ID(time->wday + 1)].min != ALARM_OFF_MIN)) {
+            uint8_t prealarm_hour, prealarm_min;
+
+            calc_prealarm_time(conf.alarm[WDAY_TO_ID(time->wday + 1)].hour,
+                               conf.alarm[WDAY_TO_ID(time->wday + 1)].min,
+                               &prealarm_hour, &prealarm_min);
+
+            rtc2_set_prealarm(prealarm_hour,
+                              prealarm_min);
         }
     }
 
@@ -70,35 +112,111 @@ ISR(PCINT1_vect, ISR_NOBLOCK)
             (conf.alarm[WDAY_TO_ID(time->wday)].min != ALARM_OFF_MIN)) {
             rtc2_set_alarm(conf.alarm[WDAY_TO_ID(time->wday)].hour,
                             conf.alarm[WDAY_TO_ID(time->wday)].min);
-
-#ifdef DEBUG
-            sprintf(buf, "SET ALARM: %02d:%02d:%02d\r\n",
-                    conf.alarm[time->wday - 1].hour,
-                    conf.alarm[time->wday - 1].min,
-                    0);
-            uartSendString(buf);
-#endif
         }
 
         wday = time->wday;
     }
 
     if (rtc2_check_prealarm(time)) {
+        if (status & (PREALARM_RUNNING | ALARM_RUNNING | ALARM_STOP_REQUEST)) {
 #ifdef DEBUG
-        uartSendString("PREALARM!\r\n");
+            if (debug & DEBUG_FSM) {
+                uartSendString("PCINT1_vect(): Unabled to start PREALARM\r\n");
+            }
 #endif
-        // FIXME
+            // There is an ALARM already running, do nothing
+        } else {
+#ifdef DEBUG
+            if (debug & DEBUG_FSM) {
+                uartSendString("PCINT1_vect(): Starting PREALARM\r\n");
+            }
+#endif
+            // Start PREALARM
+            status |= PREALARM_RUNNING;
+            period = 0;
+        }
     }
 
     if (rtc2_check_alarm(time)) {
+        if (status & (ALARM_STOP_REQUEST)) {
 #ifdef DEBUG
-        uartSendString("ALARM!\r\n");
+            if (debug & DEBUG_FSM) {
+                uartSendString("PCINT1_vect(): ALARM already stopped\r\n");
+            }
 #endif
-        // FIXME
+            // ALARM was stoped already during PREALARM
+            status &= ~ALARM_STOP_REQUEST;
+        } else {
+#ifdef DEBUG
+            if (debug & DEBUG_FSM) {
+                uartSendString("PCINT1_vect(): Starting ALARM\r\n");
+            }
+#endif
+            // Stop PREALARM if it was previously running
+            // and start ALARM
+            status &= ~PREALARM_RUNNING;
+            status |= ALARM_RUNNING;
+            period = 0;
+
+            // FIXME: Start playback
+        }
     }
 
-    if (status & PREALARM) {
+    if (status & ALARM_STOP_REQUEST) {
+        if (status & PREALARM_RUNNING) {
+            status &= ~PREALARM_RUNNING;
+            status |= PREALARM_STOPPING;
+            period = 0;
+        } else if (status & ALARM_RUNNING) {
+            status &= ~ALARM_RUNNING;
+            status |= ALARM_STOPPING;
+            period = 0;
+        }
+    }
+
+    if (status & PREALARM_RUNNING) {
         led_sunrise(period);
+        period++;
+    } else if (status & ALARM_RUNNING) {
+        if (period >= (ALARM_RUNNING_MIN * 60)) {
+#ifdef DEBUG
+            if (debug & DEBUG_FSM) {
+                uartSendString("PCINT1_vect(): ALARM timeout\r\n");
+            }
+#endif
+            // Timeout, ALARM was not stopped
+            status &= ~ALARM_RUNNING;
+            status |= ALARM_STOPPING;
+            period = 0;
+        } else {
+            led_on();
+            period++;
+        }
+    }
+
+    if (status & PREALARM_STOPPING) {
+        if (period >= (PREALARM_STOPPING_MIN * 60)) {
+#ifdef DEBUG
+            if (debug & DEBUG_FSM) {
+                uartSendString("PCINT1_vect(): PREALARM stopped\r\n");
+            }
+#endif
+            status &= ~PREALARM_STOPPING;
+        }
+
+        led_off(period);
+        period++;
+    } else if (status & ALARM_STOPPING) {
+        if (period >= (ALARM_STOPPING_MIN * 60)) {
+#ifdef DEBUG
+            if (debug & DEBUG_FSM) {
+                uartSendString("PCINT1_vect(): ALARM stopped\r\n");
+            }
+#endif
+            status &= ~ALARM_STOPPING;
+        }
+
+        led_off(period);
         period++;
     }
 }
@@ -132,6 +250,7 @@ void eeprom_init(void)
 int main(void)
 {
 #ifdef DEBUG
+    debug = DEBUG_OFF;
     char buf[50];
 #endif
 
@@ -139,7 +258,6 @@ int main(void)
 
     uartInit();
     uartSetBaudRate(38400);
-
     uartFlushReceiveBuffer();
     uartSetRxHandler(&command_rx_handler);
 
@@ -162,9 +280,11 @@ int main(void)
             uint8_t id = status & SET_ALARM_ID_MASK;
 
 #ifdef DEBUG
-            sprintf(buf, "SET ALARM%d: Time %02u:%02u\r\n",
-                    id, set_time.hour, set_time.min);
-            uartSendString(buf);
+            if (debug & DEBUG_COMMAND) {
+                sprintf(buf, "SET ALARM%d: Time %02u:%02u\r\n",
+                        id, set_time.hour, set_time.min);
+                uartSendString(buf);
+            }
 #endif
 
             conf.alarm[id].hour = set_time.hour;
@@ -177,23 +297,15 @@ int main(void)
                     (conf.alarm[id].min != ALARM_OFF_MIN)) {
                     uint8_t prealarm_hour, prealarm_min;
 
-                    if (conf.alarm[id].min < PREALARM_MIN) {
-                        prealarm_min = 60 - PREALARM_MIN + conf.alarm[id].min;
-
-                        if (conf.alarm[id].hour == 0) {
-                            prealarm_hour = 23;
-                        } else {
-                            prealarm_hour = conf.alarm[id].hour - 1;
-                        }
-                    } else {
-                        prealarm_min = conf.alarm[id].min - PREALARM_MIN;
-                        prealarm_hour = conf.alarm[id].hour;
-                    }
-
+                    calc_prealarm_time(conf.alarm[id].hour,
+                                       conf.alarm[id].min,
+                                       &prealarm_hour, &prealarm_min);
 #ifdef DEBUG
-                    sprintf(buf, "SET PREALARM%d: Time %02u:%02u\r\n",
-                            id, prealarm_hour, prealarm_min);
-                    uartSendString(buf);
+                    if (debug & DEBUG_COMMAND) {
+                        sprintf(buf, "SET PREALARM%d: Time %02u:%02u\r\n",
+                                id, prealarm_hour, prealarm_min);
+                        uartSendString(buf);
+                    }
 #endif
                     rtc2_set_prealarm(prealarm_hour,
                                       prealarm_min);
@@ -210,10 +322,12 @@ int main(void)
 
         if (status & SET_DATE) {
 #ifdef DEBUG
-            sprintf(buf, "SET DATE: Time %02u:%02u:%02u Date %02u:%02u:%04u (%1u)\r\n",
-                    set_time.hour, set_time.min, set_time.sec, set_time.mday,
-                    set_time.mon, set_time.year, set_time.wday);
-            uartSendString(buf);
+            if (debug & DEBUG_COMMAND) {
+                sprintf(buf, "SET DATE: Time %02u:%02u:%02u Date %02u:%02u:%04u (%1u)\r\n",
+                        set_time.hour, set_time.min, set_time.sec, set_time.mday,
+                        set_time.mon, set_time.year, set_time.wday);
+                uartSendString(buf);
+            }
 #endif
 
             rtc2_set_time(&set_time);

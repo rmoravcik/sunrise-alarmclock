@@ -1,5 +1,6 @@
 #include <stdio.h>
 
+#include "common.h"
 #include "rtc2.h"
 
 static void rtc_SQW_irq_init(void)
@@ -31,12 +32,27 @@ void rtc2_set_time(struct tm* tm_)
 
 void rtc2_reset_prealarm(void)
 {
+#ifdef DEBUG
+    if (debug & DEBUG_RTC) {
+        uartSendString("rtc2_reset_prealarm()\r\n");
+    }
+#endif
+
     rtc_set_sram_byte(0, 0); // hour
     rtc_set_sram_byte(0, 1); // minute
 }
 
 void rtc2_set_prealarm(uint8_t hour, uint8_t min)
 {
+#ifdef DEBUG
+    char buf[50];
+
+    if (debug & DEBUG_RTC) {
+        sprintf(buf, "rtc2_set_prealarm(): %02d:%02d\r\n", hour, min);
+        uartSendString(buf);
+    }
+#endif
+
     rtc_set_sram_byte(hour, 0); // hour
     rtc_set_sram_byte(min,  1); // minute
 }
@@ -52,19 +68,40 @@ bool rtc2_check_prealarm(struct tm *tm_)
     uint8_t hour = rtc_get_sram_byte(0);
     uint8_t min  = rtc_get_sram_byte(1);
 
-    if (tm_->hour == hour && tm_->min == min && tm_->sec == 0)
+    if (tm_->hour == hour && tm_->min == min && tm_->sec == 0) {
+#ifdef DEBUG
+        if (debug & DEBUG_RTC) {
+            uartSendString("rtc2_check_prealarm(): PREALARM!\r\n");
+        }
+#endif
         return true;
+    }
     return false;
 }
 
 void rtc2_reset_alarm(void)
 {
+#ifdef DEBUG
+    if (debug & DEBUG_RTC) {
+        uartSendString("rtc2_reset_alarm()\r\n");
+    }
+#endif
+
     rtc_set_sram_byte(0, 2); // hour
     rtc_set_sram_byte(0, 3); // minute
 }
 
 void rtc2_set_alarm(uint8_t hour, uint8_t min)
 {
+#ifdef DEBUG
+    char buf[50];
+
+    if (debug & DEBUG_RTC) {
+        sprintf(buf, "rtc2_set_alarm(): %02d:%02d\r\n", hour, min);
+        uartSendString(buf);
+    }
+#endif
+
     rtc_set_sram_byte(hour, 2); // hour
     rtc_set_sram_byte(min,  3); // minute
 }
@@ -80,7 +117,13 @@ bool rtc2_check_alarm(struct tm *tm_)
     uint8_t hour = rtc_get_sram_byte(2);
     uint8_t min  = rtc_get_sram_byte(3);
 
-    if (tm_->hour == hour && tm_->min == min && tm_->sec == 0)
+    if (tm_->hour == hour && tm_->min == min && tm_->sec == 0) {
+#ifdef DEBUG
+        if (debug & DEBUG_RTC) {
+            uartSendString("rtc2_check_alarm(): ALARM!\r\n");
+        }
+#endif
         return true;
+    }
     return false;
 }
