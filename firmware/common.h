@@ -3,7 +3,7 @@
 
 #include <avr/eeprom.h>
 
-//#define DEBUG 1
+#define DEBUG 1
 
 #define ALARM_OFF_HOUR 99
 #define ALARM_OFF_MIN 99

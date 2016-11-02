@@ -33,8 +33,8 @@
 static conf_t EEMEM eeprom_conf;
 conf_t conf;
 
-uint16_t status = 0;
-uint8_t wday = 0;
+volatile uint16_t status = 0;
+volatile uint8_t wday = 0;
 
 struct tm set_time;
 
