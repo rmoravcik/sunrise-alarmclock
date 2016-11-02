@@ -178,7 +178,7 @@ ISR(PCINT1_vect, ISR_NOBLOCK)
         led_sunrise(period);
         period++;
     } else if (status & ALARM_RUNNING) {
-        if (period >= (ALARM_RUNNING_MIN * 60)) {
+        if (period >= (ALARM_RUNNING_MIN * 120)) {
 #ifdef DEBUG
             if (debug & DEBUG_FSM) {
                 uartSendString("PCINT1_vect(): ALARM timeout\r\n");
@@ -195,7 +195,7 @@ ISR(PCINT1_vect, ISR_NOBLOCK)
     }
 
     if (status & PREALARM_STOPPING) {
-        if (period >= (PREALARM_STOPPING_MIN * 60)) {
+        if (period >= (PREALARM_STOPPING_MIN * 120)) {
 #ifdef DEBUG
             if (debug & DEBUG_FSM) {
                 uartSendString("PCINT1_vect(): PREALARM stopped\r\n");
@@ -204,10 +204,10 @@ ISR(PCINT1_vect, ISR_NOBLOCK)
             status &= ~PREALARM_STOPPING;
         }
 
-        led_off(period);
+        led_sunset(period);
         period++;
     } else if (status & ALARM_STOPPING) {
-        if (period >= (ALARM_STOPPING_MIN * 60)) {
+        if (period >= (ALARM_STOPPING_MIN * 120)) {
 #ifdef DEBUG
             if (debug & DEBUG_FSM) {
                 uartSendString("PCINT1_vect(): ALARM stopped\r\n");
@@ -216,7 +216,7 @@ ISR(PCINT1_vect, ISR_NOBLOCK)
             status &= ~ALARM_STOPPING;
         }
 
-        led_off(period);
+        led_sunset(period);
         period++;
     }
 }

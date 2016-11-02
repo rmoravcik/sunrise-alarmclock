@@ -3,7 +3,7 @@
 
 #include <avr/eeprom.h>
 
-#define DEBUG 1
+//#define DEBUG 1
 
 #ifdef DEBUG
 extern uint8_t debug;
