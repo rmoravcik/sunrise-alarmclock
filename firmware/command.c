@@ -89,7 +89,11 @@ void command_rx_handler(unsigned char c)
 
     rxbuff[i] = c;
 
+#ifdef DEBUG
+    if (rxbuff[i] == '\r') {
+#else
     if (rxbuff[i] == '\n') {
+#endif
         rxbuff[i] = '\0';
 
         len = i;
