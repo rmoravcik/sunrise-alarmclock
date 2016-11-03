@@ -44,8 +44,19 @@ volatile uint8_t sec = 0;
 
 struct tm set_time;
 
-void calc_prealarm_time(uint8_t hour, uint8_t min,
-                        uint8_t *prealarm_hour, uint8_t *prealarm_min)
+static inline uint8_t NEXT_WDAY(uint8_t current)
+{
+    uint8_t next = current + 1;
+
+    if (next > 7)
+        next = 1;
+
+    return next;
+}
+
+static void calc_prealarm_time(uint8_t hour, uint8_t min,
+                               uint8_t *prealarm_hour,
+                               uint8_t *prealarm_min)
 {
     if (min < PREALARM_RUNNING_MIN) {
         *prealarm_min = 60 - PREALARM_RUNNING_MIN + min;
@@ -102,10 +113,7 @@ ISR(PCINT1_vect, ISR_NOBLOCK)
 
     if ((time->hour == 23) && (time->min == (60 - PREALARM_RUNNING_MIN)) &&
         (time->sec == 0)) {
-        uint8_t next_wday = time->wday + 1;
-
-        if (next_wday > 7)
-            next_wday = 1;
+        uint8_t next_wday = NEXT_WDAY(time->wday);
 
         if ((conf.alarm[WDAY_TO_ID(next_wday)].hour != ALARM_OFF_HOUR) &&
             (conf.alarm[WDAY_TO_ID(next_wday)].min != ALARM_OFF_MIN)) {
@@ -296,16 +304,17 @@ void alarm_init(void)
                                   prealarm_min);
             }
         }
+    } else {
+        // If ALARM is disabled, reset both alarms
+        rtc2_reset_alarm();
+        rtc2_reset_prealarm();
     }
 
     // If current time is >= 23:40, check if ALARM for the next day is set
     // and set PREALARM
     if ((time->hour == 23) &&
         (time->min >= (60 - PREALARM_RUNNING_MIN))) {
-        uint8_t next_wday = wday + 1;
-
-        if (next_wday > 7)
-            next_wday = 1;
+        uint8_t next_wday = NEXT_WDAY(wday);
 
         if ((conf.alarm[WDAY_TO_ID(next_wday)].hour != ALARM_OFF_HOUR) &&
             (conf.alarm[WDAY_TO_ID(next_wday)].min != ALARM_OFF_MIN)) {
