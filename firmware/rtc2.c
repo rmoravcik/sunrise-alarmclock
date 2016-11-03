@@ -1,5 +1,7 @@
 #include <stdio.h>
 
+#include "ds_rtc_lib/library-gcc/test/uart.h"
+
 #include "common.h"
 #include "rtc2.h"
 
