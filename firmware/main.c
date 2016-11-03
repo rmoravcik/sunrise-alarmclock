@@ -40,6 +40,7 @@ conf_t conf;
 volatile uint32_t status = 0;
 volatile uint16_t period = 0;
 volatile uint8_t wday = 0;
+volatile uint8_t sec = 0;
 
 struct tm set_time;
 
@@ -82,6 +83,15 @@ ISR(PCINT1_vect, ISR_NOBLOCK)
 #endif
 
     time = rtc2_get_time();
+
+    // PC2 is pin change interrupt, so 1Hz SQW signal
+    // from DS1307 triggering it every 500ms
+    if (sec == time->sec) {
+        return;
+    } else {
+        sec = time->sec;
+    }
+
 #ifdef DEBUG
     if (debug & DEBUG_RTC) {
         sprintf(buf, "rtc2_get_time(): %02d:%02d:%02d (%d)\r\n",
@@ -383,13 +393,6 @@ int main(void)
                             calc_prealarm_time(conf.alarm[id].hour,
                                                conf.alarm[id].min,
                                                &prealarm_hour, &prealarm_min);
-#ifdef DEBUG
-                            if (debug & DEBUG_COMMAND) {
-                                sprintf(buf, "SET PREALARM%d: Time %02u:%02u\r\n",
-                                        id, prealarm_hour, prealarm_min);
-                                uartSendString(buf);
-                            }
-#endif
                             rtc2_set_prealarm(prealarm_hour,
                                               prealarm_min);
                         }
