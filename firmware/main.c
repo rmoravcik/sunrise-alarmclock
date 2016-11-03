@@ -358,27 +358,54 @@ int main(void)
             eeprom_write_block(&conf, &eeprom_conf, sizeof(conf_t));
 
             if (id == WDAY_TO_ID(wday)) {
+                struct tm* time = NULL;
+
+                time = rtc2_get_time();
+
+
                 if ((conf.alarm[id].hour != ALARM_OFF_HOUR) &&
                     (conf.alarm[id].min != ALARM_OFF_MIN)) {
-                    uint8_t prealarm_hour, prealarm_min;
-
-                    calc_prealarm_time(conf.alarm[id].hour,
-                                       conf.alarm[id].min,
-                                       &prealarm_hour, &prealarm_min);
-#ifdef DEBUG
-                    if (debug & DEBUG_COMMAND) {
-                        sprintf(buf, "SET PREALARM%d: Time %02u:%02u\r\n",
-                                id, prealarm_hour, prealarm_min);
-                        uartSendString(buf);
-                    }
-#endif
-                    rtc2_set_prealarm(prealarm_hour,
-                                      prealarm_min);
+                    // Set ALARM always
                     rtc2_set_alarm(conf.alarm[id].hour,
                                    conf.alarm[id].min);
+
+                    if ((conf.alarm[id].hour == 0) &&
+                        (conf.alarm[id].min < PREALARM_RUNNING_MIN)) {
+                        // Do not set PREALARM if ALARM time is < 00:20
+                        // PREALARM for these times is 23:40 - 23:59
+                    } else {
+                        if ((time->hour == 23) &&
+                            (time->min >= (60 - PREALARM_RUNNING_MIN))) {
+                            // Do not set PREALARM if current time is >= 23:40
+                        } else {
+                            uint8_t prealarm_hour, prealarm_min;
+
+                            calc_prealarm_time(conf.alarm[id].hour,
+                                               conf.alarm[id].min,
+                                               &prealarm_hour, &prealarm_min);
+#ifdef DEBUG
+                            if (debug & DEBUG_COMMAND) {
+                                sprintf(buf, "SET PREALARM%d: Time %02u:%02u\r\n",
+                                        id, prealarm_hour, prealarm_min);
+                                uartSendString(buf);
+                            }
+#endif
+                            rtc2_set_prealarm(prealarm_hour,
+                                              prealarm_min);
+                        }
+                    }
                 } else {
-                    rtc2_reset_prealarm();
+                    // Reset ALARM always
                     rtc2_reset_alarm();
+
+                    if ((time->hour == 23) &&
+                        (time->min >= (60 - PREALARM_RUNNING_MIN))) {
+                        // Do not reset PREALARM if current time is > 23:40,
+                        // because PREALARM for next day alarm should be
+                        // already set
+                    } else {
+                        rtc2_reset_prealarm();
+                    }
                 }
             }
 
