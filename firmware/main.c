@@ -62,9 +62,6 @@ void calc_prealarm_time(uint8_t hour, uint8_t min,
 
 ISR(INT1_vect, ISR_NOBLOCK)
 {
-    // REMOVEME: JUST FOR a TEST
-    status |= PREALARM_RUNNING;
-
     if (status & (PREALARM_RUNNING | ALARM_RUNNING)) {
 #ifdef DEBUG
         if (debug & DEBUG_FSM) {
@@ -87,19 +84,25 @@ ISR(PCINT1_vect, ISR_NOBLOCK)
     time = rtc2_get_time();
 #ifdef DEBUG
     if (debug & DEBUG_RTC) {
-        sprintf(buf, "rtc2_get_time(): %02d:%02d:%02d\r\n", time->hour, time->min, time->sec);
+        sprintf(buf, "rtc2_get_time(): %02d:%02d:%02d (%d)\r\n",
+                time->hour, time->min, time->sec, time->wday);
         uartSendString(buf);
     }
 #endif
 
     if ((time->hour == 23) && (time->min == (60 - PREALARM_RUNNING_MIN)) &&
         (time->sec == 0)) {
-        if ((conf.alarm[WDAY_TO_ID(time->wday + 1)].hour != ALARM_OFF_HOUR) &&
-            (conf.alarm[WDAY_TO_ID(time->wday + 1)].min != ALARM_OFF_MIN)) {
+        uint8_t next_wday = time->wday + 1;
+
+        if (next_wday > 7)
+            next_wday = 1;
+
+        if ((conf.alarm[WDAY_TO_ID(next_wday)].hour != ALARM_OFF_HOUR) &&
+            (conf.alarm[WDAY_TO_ID(next_wday)].min != ALARM_OFF_MIN)) {
             uint8_t prealarm_hour, prealarm_min;
 
-            calc_prealarm_time(conf.alarm[WDAY_TO_ID(time->wday + 1)].hour,
-                               conf.alarm[WDAY_TO_ID(time->wday + 1)].min,
+            calc_prealarm_time(conf.alarm[WDAY_TO_ID(next_wday)].hour,
+                               conf.alarm[WDAY_TO_ID(next_wday)].min,
                                &prealarm_hour, &prealarm_min);
 
             rtc2_set_prealarm(prealarm_hour,
@@ -111,7 +114,7 @@ ISR(PCINT1_vect, ISR_NOBLOCK)
         if ((conf.alarm[WDAY_TO_ID(time->wday)].hour != ALARM_OFF_HOUR) &&
             (conf.alarm[WDAY_TO_ID(time->wday)].min != ALARM_OFF_MIN)) {
             rtc2_set_alarm(conf.alarm[WDAY_TO_ID(time->wday)].hour,
-                            conf.alarm[WDAY_TO_ID(time->wday)].min);
+                           conf.alarm[WDAY_TO_ID(time->wday)].min);
         }
 
         wday = time->wday;
@@ -247,6 +250,66 @@ void eeprom_init(void)
     eeprom_write_block(&conf, &eeprom_conf, sizeof(conf_t));
 }
 
+void alarm_init(void)
+{
+    struct tm* time = NULL;
+
+    time = rtc2_get_time();
+
+    wday = time->wday;
+
+#ifdef DEBUG
+    uartSendString("alarm_init()\r\n");
+#endif
+
+    // Check if ALARM for current day is set and set it
+    if ((conf.alarm[WDAY_TO_ID(wday)].hour != ALARM_OFF_HOUR) &&
+        (conf.alarm[WDAY_TO_ID(wday)].min != ALARM_OFF_MIN)) {
+        rtc2_set_alarm(conf.alarm[WDAY_TO_ID(wday)].hour,
+                       conf.alarm[WDAY_TO_ID(wday)].min);
+
+        if ((conf.alarm[WDAY_TO_ID(wday)].hour == 0) &&
+            (conf.alarm[WDAY_TO_ID(wday)].min < PREALARM_RUNNING_MIN)) {
+            // Do not set PREALARM if ALARM time is < 00:20
+            // PREALARM for these times is 23:40 - 23:59
+        } else {
+            if ((time->hour == 23) &&
+                (time->min >= (60 - PREALARM_RUNNING_MIN))) {
+                // Do not set PREALARM if current time is >= 23:40
+            } else {
+                uint8_t prealarm_hour, prealarm_min;
+
+                calc_prealarm_time(conf.alarm[WDAY_TO_ID(wday)].hour,
+                                   conf.alarm[WDAY_TO_ID(wday)].min,
+                                   &prealarm_hour, &prealarm_min);
+                rtc2_set_prealarm(prealarm_hour,
+                                  prealarm_min);
+            }
+        }
+    }
+
+    // If current time is >= 23:40, check if ALARM for the next day is set
+    // and set PREALARM
+    if ((time->hour == 23) &&
+        (time->min >= (60 - PREALARM_RUNNING_MIN))) {
+        uint8_t next_wday = wday + 1;
+
+        if (next_wday > 7)
+            next_wday = 1;
+
+        if ((conf.alarm[WDAY_TO_ID(next_wday)].hour != ALARM_OFF_HOUR) &&
+            (conf.alarm[WDAY_TO_ID(next_wday)].min != ALARM_OFF_MIN)) {
+            uint8_t prealarm_hour, prealarm_min;
+
+            calc_prealarm_time(conf.alarm[WDAY_TO_ID(next_wday)].hour,
+                               conf.alarm[WDAY_TO_ID(next_wday)].min,
+                               &prealarm_hour, &prealarm_min);
+            rtc2_set_prealarm(prealarm_hour,
+                              prealarm_min);
+        }
+    }
+}
+
 int main(void)
 {
 #ifdef DEBUG
@@ -255,6 +318,8 @@ int main(void)
 #endif
 
     OSCCAL = 0x8f;
+
+    eeprom_init();
 
     uartInit();
     uartSetBaudRate(38400);
@@ -271,7 +336,7 @@ int main(void)
 
     snooze_irq_init();
 
-    eeprom_init();
+    alarm_init();
 
     sei();
 
