@@ -191,7 +191,7 @@ ISR(PCINT1_vect, ISR_NOBLOCK)
         led_sunrise(period);
         period++;
     } else if (status & ALARM_RUNNING) {
-        if (period >= (ALARM_RUNNING_MIN * 120)) {
+        if (period >= (TO_SEC(ALARM_RUNNING_MIN))) {
 #ifdef DEBUG
             if (debug & DEBUG_FSM) {
                 uartSendString("PCINT1_vect(): ALARM timeout\r\n");
@@ -208,7 +208,7 @@ ISR(PCINT1_vect, ISR_NOBLOCK)
     }
 
     if (status & PREALARM_STOPPING) {
-        if (period >= (PREALARM_STOPPING_MIN * 120)) {
+        if (period >= (TO_SEC(PREALARM_STOPPING_MIN))) {
 #ifdef DEBUG
             if (debug & DEBUG_FSM) {
                 uartSendString("PCINT1_vect(): PREALARM stopped\r\n");
@@ -220,7 +220,7 @@ ISR(PCINT1_vect, ISR_NOBLOCK)
         led_sunset(period);
         period++;
     } else if (status & ALARM_STOPPING) {
-        if (period >= (ALARM_STOPPING_MIN * 120)) {
+        if (period >= (TO_SEC(ALARM_STOPPING_MIN))) {
 #ifdef DEBUG
             if (debug & DEBUG_FSM) {
                 uartSendString("PCINT1_vect(): ALARM stopped\r\n");
@@ -323,7 +323,7 @@ void alarm_init(void)
 int main(void)
 {
 #ifdef DEBUG
-    debug = DEBUG_OFF;
+    debug = DEBUG_RTC | DEBUG_LED | DEBUG_COMMAND;
     char buf[50];
 #endif
 

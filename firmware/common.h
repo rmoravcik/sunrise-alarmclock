@@ -53,6 +53,7 @@ typedef struct {
 #define ALARM_STOPPING		0x0200
 #define ALARM_STOP_REQUEST	0x0400
 
-#define WDAY_TO_ID(x) (x - 1)
+#define WDAY_TO_ID(x)		(x - 1)
+#define TO_SEC(x)		(60 * x)
 
 #endif
