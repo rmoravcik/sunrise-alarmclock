@@ -31,8 +31,8 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.app.TimePickerDialog;
+import android.text.format.DateFormat;
 import android.view.View;
-import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.Switch;
 import android.widget.TextView;
@@ -42,6 +42,8 @@ import android.widget.Toast;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
+import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -421,12 +423,39 @@ private class AlarmTime {
 
         public void setDate()  {
             Calendar calendar = Calendar.getInstance();
-            calendar.getTime();
 
-            SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss;F;dd.MM.yyyy");
+            String wday;
+            switch (calendar.get(Calendar.DAY_OF_WEEK)) {
+                case Calendar.MONDAY:
+                    wday = ";1;";
+                    break;
+                case Calendar.TUESDAY:
+                    wday = ";2;";
+                    break;
+                case Calendar.WEDNESDAY:
+                    wday = ";3;";
+                    break;
+                case Calendar.THURSDAY:
+                    wday = ";4;";
+                    break;
+                case Calendar.FRIDAY:
+                    wday = ";5;";
+                    break;
+                case Calendar.SATURDAY:
+                    wday = ";6;";
+                    break;
+                case Calendar.SUNDAY:
+                    wday = ";7;";
+                    break;
+                default:
+                    wday = ";0;";
+            }
+
+            SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss;;dd.MM.yyyy");
 
             String command = Constants.COMMAND_SET_DATE +
-                    dateFormat.format(calendar.getTime()).toString() + "\n";
+                    dateFormat.format(calendar.getTime()).toString()
+                            .replace(";;", wday) + "\n";
 
             mWaitingAck = true;
             mBluetoothClient.write(command);
