@@ -39,6 +39,7 @@ SRC = main.c \
       ds_rtc_lib/library-gcc/test/buffer.c \
       ds_rtc_lib/library-gcc/test/uart.c \
       ssd1306xled/ssd1306xled/ssd1306xled.c \
+      ssd1306xled/ssd1306xled/ssd1306xled8x16.c \
       ssd1306xled/ssd1306xled/num2str.c \
       light_ws2812/light_ws2812_AVR/Light_WS2812/light_ws2812.c
 

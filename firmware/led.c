@@ -7,12 +7,14 @@
 
 #include "led.h"
 
-#define NUM_LEDS 12
+#define NUM_LEDS 7
 
-#define SUNRISE_INTERVAL (TO_SEC(PREALARM_RUNNING_MIN) / 4)
-#define SUNSET_INTERVAL (TO_SEC(PREALARM_STOPPING_MIN))
+#define SUNRISE_INTERVAL (TO_PERIOD(PREALARM_RUNNING_MIN) / 4)
+#define SUNSET_FADEIN_INTERVAL (20)
+#define SUNSET_FADEOUT_INTERVAL (20)
+#define SUNSET_INTERVAL (TO_PERIOD(PREALARM_STOPPING_MIN))
 
-struct cRGB leds[12];
+struct cRGB leds[NUM_LEDS];
 
 void led_init(void)
 {
@@ -63,21 +65,36 @@ void led_sunrise(uint16_t period)
         leds[i].b = blue;
     }
 
-    ws2812_setleds(leds, 12);
+    ws2812_setleds(leds, NUM_LEDS);
 }
 
 void led_sunset(uint16_t period)
 {
+    static uint8_t red_init = 0, green_init = 0, blue_init = 0;
     uint8_t red = 0, green = 0, blue = 0;
     uint8_t i = 0;
 #ifdef DEBUG
     char buf[60];
 #endif
 
-    if ((period >= 0) && (period <= SUNSET_INTERVAL)) {
-        red = 255 - (((uint32_t)period + 1) * 255 / SUNSET_INTERVAL);
-        green = 255 - (((uint32_t)period + 1) * 255 / SUNSET_INTERVAL);
-        blue = 255 - (((uint32_t)period + 1) * 255 / SUNSET_INTERVAL);
+    if (period == 0) {
+        red_init = leds[0].r;
+        green_init = leds[0].g;
+        blue_init = leds[0].b;
+    }
+
+    if ((period >= 0) && (period < SUNSET_FADEIN_INTERVAL)) {
+        red = red_init + (((uint32_t)period + 1) * (255 - red_init) / SUNSET_FADEIN_INTERVAL);
+        green = green_init + (((uint32_t)period + 1) * (255 - green_init) / SUNSET_FADEIN_INTERVAL);
+        blue = blue_init + (((uint32_t)period + 1) * (255 - blue_init) / SUNSET_FADEIN_INTERVAL);
+    } else if ((period >= 3) && (period <= (SUNSET_INTERVAL - SUNSET_FADEIN_INTERVAL - SUNSET_FADEOUT_INTERVAL))) {
+        red = 255;
+        green = 255;
+        blue = 255;
+    } else {
+        red = 255 - (((uint32_t)period + 1) * 255 / SUNSET_FADEOUT_INTERVAL);
+        green = 255 - (((uint32_t)period + 1) * 255 / SUNSET_FADEOUT_INTERVAL);
+        blue = 255 - (((uint32_t)period + 1) * 255 / SUNSET_FADEOUT_INTERVAL);
     }
 
 #ifdef DEBUG
@@ -94,7 +111,7 @@ void led_sunset(uint16_t period)
         leds[i].b = blue;
     }
 
-    ws2812_setleds(leds, 12);
+    ws2812_setleds(leds, NUM_LEDS);
 }
 
 void led_on(void)
@@ -107,7 +124,7 @@ void led_on(void)
         leds[i].b = 255;
     }
 
-    ws2812_setleds(leds, 12);
+    ws2812_setleds(leds, NUM_LEDS);
 }
 
 void led_off(void)
@@ -120,5 +137,5 @@ void led_off(void)
         leds[i].b = 0;
     }
 
-    ws2812_setleds(leds, 12);
+    ws2812_setleds(leds, NUM_LEDS);
 }

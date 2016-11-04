@@ -24,6 +24,7 @@
 #include "ds_rtc_lib/library-gcc/test/uart.h"
 
 #include "ssd1306xled/ssd1306xled/ssd1306xled.h"
+#include "ssd1306xled/ssd1306xled/ssd1306xled8x16.h"
 
 #include "command.h"
 #include "common.h"
@@ -96,90 +97,88 @@ ISR(PCINT1_vect, ISR_NOBLOCK)
     time = rtc2_get_time();
 
     // PC2 is pin change interrupt, so 1Hz SQW signal
-    // from DS1307 triggering it every 500ms
-    if (sec == time->sec) {
-        return;
-    } else {
+    // from DS1307 is triggering this interrupt every 500ms
+    if (sec != time->sec) {
         sec = time->sec;
-    }
+
+//        ssd1306_string_font8x16xy(10, 1, "Tinusaur");
 
 #ifdef DEBUG
-    if (debug & DEBUG_RTC) {
-        sprintf(buf, "rtc2_get_time(): %02d:%02d:%02d (%d)\r\n",
-                time->hour, time->min, time->sec, time->wday);
-        uartSendString(buf);
-    }
-#endif
-
-    if ((time->hour == 23) && (time->min == (60 - PREALARM_RUNNING_MIN)) &&
-        (time->sec == 0)) {
-        uint8_t next_wday = NEXT_WDAY(time->wday);
-
-        if ((conf.alarm[WDAY_TO_ID(next_wday)].hour != ALARM_OFF_HOUR) &&
-            (conf.alarm[WDAY_TO_ID(next_wday)].min != ALARM_OFF_MIN)) {
-            uint8_t prealarm_hour, prealarm_min;
-
-            calc_prealarm_time(conf.alarm[WDAY_TO_ID(next_wday)].hour,
-                               conf.alarm[WDAY_TO_ID(next_wday)].min,
-                               &prealarm_hour, &prealarm_min);
-
-            rtc2_set_prealarm(prealarm_hour,
-                              prealarm_min);
+        if (debug & DEBUG_RTC) {
+            sprintf(buf, "rtc2_get_time(): %02d:%02d:%02d (%d)\r\n",
+                    time->hour, time->min, time->sec, time->wday);
+            uartSendString(buf);
         }
-    }
+#endif
+        if ((time->hour == 23) && (time->min == (60 - PREALARM_RUNNING_MIN)) &&
+            (time->sec == 0)) {
+            uint8_t next_wday = NEXT_WDAY(time->wday);
 
-    if (time->wday != wday) {
-        if ((conf.alarm[WDAY_TO_ID(time->wday)].hour != ALARM_OFF_HOUR) &&
-            (conf.alarm[WDAY_TO_ID(time->wday)].min != ALARM_OFF_MIN)) {
-            rtc2_set_alarm(conf.alarm[WDAY_TO_ID(time->wday)].hour,
-                           conf.alarm[WDAY_TO_ID(time->wday)].min);
+            if ((conf.alarm[WDAY_TO_ID(next_wday)].hour != ALARM_OFF_HOUR) &&
+                (conf.alarm[WDAY_TO_ID(next_wday)].min != ALARM_OFF_MIN)) {
+                uint8_t prealarm_hour, prealarm_min;
+
+                calc_prealarm_time(conf.alarm[WDAY_TO_ID(next_wday)].hour,
+                                   conf.alarm[WDAY_TO_ID(next_wday)].min,
+                                   &prealarm_hour, &prealarm_min);
+
+                rtc2_set_prealarm(prealarm_hour,
+                                  prealarm_min);
+            }
         }
 
-        wday = time->wday;
-    }
+        if (time->wday != wday) {
+            if ((conf.alarm[WDAY_TO_ID(time->wday)].hour != ALARM_OFF_HOUR) &&
+                (conf.alarm[WDAY_TO_ID(time->wday)].min != ALARM_OFF_MIN)) {
+                rtc2_set_alarm(conf.alarm[WDAY_TO_ID(time->wday)].hour,
+                               conf.alarm[WDAY_TO_ID(time->wday)].min);
+            }
 
-    if (rtc2_check_prealarm(time)) {
-        if (status & (PREALARM_RUNNING | ALARM_RUNNING | ALARM_STOP_REQUEST)) {
-#ifdef DEBUG
-            if (debug & DEBUG_FSM) {
-                uartSendString("PCINT1_vect(): Unabled to start PREALARM\r\n");
-            }
-#endif
-            // There is an ALARM already running, do nothing
-        } else {
-#ifdef DEBUG
-            if (debug & DEBUG_FSM) {
-                uartSendString("PCINT1_vect(): Starting PREALARM\r\n");
-            }
-#endif
-            // Start PREALARM
-            status |= PREALARM_RUNNING;
-            period = 0;
+            wday = time->wday;
         }
-    }
-
-    if (rtc2_check_alarm(time)) {
-        if (status & (ALARM_STOP_REQUEST)) {
+        if (rtc2_check_prealarm(time)) {
+            if (status & (PREALARM_RUNNING | ALARM_RUNNING | ALARM_STOP_REQUEST)) {
 #ifdef DEBUG
-            if (debug & DEBUG_FSM) {
-                uartSendString("PCINT1_vect(): ALARM already stopped\r\n");
-            }
+                if (debug & DEBUG_FSM) {
+                    uartSendString("PCINT1_vect(): Unabled to start PREALARM\r\n");
+                }
 #endif
-            // ALARM was stoped already during PREALARM
-            status &= ~ALARM_STOP_REQUEST;
-        } else {
+                // There is an ALARM already running, do nothing
+            } else {
 #ifdef DEBUG
-            if (debug & DEBUG_FSM) {
-                uartSendString("PCINT1_vect(): Starting ALARM\r\n");
-            }
+                if (debug & DEBUG_FSM) {
+                    uartSendString("PCINT1_vect(): Starting PREALARM\r\n");
+                }
 #endif
-            // Stop PREALARM if it was previously running
-            // and start ALARM
-            status &= ~PREALARM_RUNNING;
-            status |= ALARM_RUNNING;
-            period = 0;
+                // Start PREALARM
+                status |= PREALARM_RUNNING;
+                period = 0;
+            }
+        }
 
-            // FIXME: Start playback
+        if (rtc2_check_alarm(time)) {
+            if (status & (ALARM_STOP_REQUEST)) {
+#ifdef DEBUG
+                if (debug & DEBUG_FSM) {
+                    uartSendString("PCINT1_vect(): ALARM already stopped\r\n");
+                }
+#endif
+                // ALARM was stoped already during PREALARM
+                status &= ~ALARM_STOP_REQUEST;
+            } else {
+#ifdef DEBUG
+                if (debug & DEBUG_FSM) {
+                    uartSendString("PCINT1_vect(): Starting ALARM\r\n");
+                }
+#endif
+                // Stop PREALARM if it was previously running
+                // and start ALARM
+                status &= ~PREALARM_RUNNING;
+                status |= ALARM_RUNNING;
+                period = 0;
+
+                // FIXME: Start playback
+            }
         }
     }
 
@@ -199,7 +198,7 @@ ISR(PCINT1_vect, ISR_NOBLOCK)
         led_sunrise(period);
         period++;
     } else if (status & ALARM_RUNNING) {
-        if (period >= (TO_SEC(ALARM_RUNNING_MIN))) {
+        if (period >= (TO_PERIOD(ALARM_RUNNING_MIN))) {
 #ifdef DEBUG
             if (debug & DEBUG_FSM) {
                 uartSendString("PCINT1_vect(): ALARM timeout\r\n");
@@ -216,7 +215,7 @@ ISR(PCINT1_vect, ISR_NOBLOCK)
     }
 
     if (status & PREALARM_STOPPING) {
-        if (period >= (TO_SEC(PREALARM_STOPPING_MIN))) {
+        if (period >= (TO_PERIOD(PREALARM_STOPPING_MIN))) {
 #ifdef DEBUG
             if (debug & DEBUG_FSM) {
                 uartSendString("PCINT1_vect(): PREALARM stopped\r\n");
@@ -228,7 +227,7 @@ ISR(PCINT1_vect, ISR_NOBLOCK)
         led_sunset(period);
         period++;
     } else if (status & ALARM_STOPPING) {
-        if (period >= (TO_SEC(ALARM_STOPPING_MIN))) {
+        if (period >= (TO_PERIOD(ALARM_STOPPING_MIN))) {
 #ifdef DEBUG
             if (debug & DEBUG_FSM) {
                 uartSendString("PCINT1_vect(): ALARM stopped\r\n");
