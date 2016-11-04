@@ -139,3 +139,18 @@ void led_off(void)
 
     ws2812_setleds(leds, NUM_LEDS);
 }
+
+#ifdef DEBUG
+void led_set(uint8_t red, uint8_t green, uint8_t blue)
+{
+    uint8_t i = 0;
+
+    for (i = 0; i < NUM_LEDS; i++) {
+        leds[i].r = red;
+        leds[i].g = green;
+        leds[i].b = blue;
+    }
+
+    ws2812_setleds(leds, NUM_LEDS);
+}
+#endif

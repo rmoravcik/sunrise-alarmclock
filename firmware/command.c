@@ -4,8 +4,12 @@
 #include "ds_rtc_lib/library-gcc/rtc.h"
 #include "ds_rtc_lib/library-gcc/test/uart.h"
 
-#include "command.h"
 #include "common.h"
+
+#ifdef DEBUG
+#include "led.h"
+#endif
+#include "command.h"
 
 #define RXBUFF_LEN 30
 #define TXBUFF_LEN 50
@@ -72,6 +76,18 @@ static void command_parse(uint8_t len)
 
         sprintf(txbuff, "%s\n", COMMAND_SET_DATE_RSP);
         uartSendString(txbuff);
+#ifdef DEBUG
+    } else if (strncmp(rxbuff, COMMAND_SET_LED, strlen(COMMAND_SET_LED)) == 0) {
+        unsigned int red, green, blue;
+
+        // LED+RRR,GGG,BBB
+        sscanf(rxbuff, "LED+%3u,%3u,%3u", &red, &green, &blue);
+
+        led_set(red, green, blue);
+
+        sprintf(txbuff, "%s\n", COMMAND_SET_LED_RSP);
+        uartSendString(txbuff);
+#endif
     } else {
 #ifdef DEBUG
         if (debug & DEBUG_COMMAND) {

@@ -9,4 +9,8 @@ void led_sunset(uint16_t period);
 void led_on(void);
 void led_off(void);
 
+#ifdef DEBUG
+void led_set(uint8_t red, uint8_t green, uint8_t blue);
+#endif
+
 #endif

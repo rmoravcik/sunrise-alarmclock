@@ -3,7 +3,7 @@
 
 #include <avr/eeprom.h>
 
-//#define DEBUG 1
+#define DEBUG 1
 
 #ifdef DEBUG
 extern uint8_t debug;
@@ -34,6 +34,11 @@ extern uint8_t debug;
 
 #define COMMAND_SET_DATE "DATE+"
 #define COMMAND_SET_DATE_RSP "DATE+OK"
+
+#ifdef DEBUG
+#define COMMAND_SET_LED "LED+"
+#define COMMAND_SET_LED_RSP "LED+OK"
+#endif
 
 typedef struct {
     uint8_t hour;
