@@ -13444,8 +13444,8 @@ Source: http://www.st.com/stonline/products/literature/ds/7194/ld1117axx.pdf</de
 <part name="GND1" library="supply1" deviceset="GND" device=""/>
 <part name="P+3" library="supply1" deviceset="VCC" device=""/>
 <part name="IC3" library="TinyRTC_module" deviceset="HC-05" device="" value="TinyRTC"/>
-<part name="R1" library="rcl" deviceset="R-EU_" device="M1206"/>
-<part name="R2" library="rcl" deviceset="R-EU_" device="M1206"/>
+<part name="R1" library="rcl" deviceset="R-EU_" device="M1206" value="18k"/>
+<part name="R2" library="rcl" deviceset="R-EU_" device="M1206" value="33k"/>
 <part name="C2" library="rcl" deviceset="C-EU" device="C1206K" value="100n"/>
 <part name="C3" library="rcl" deviceset="C-EU" device="C1206K" value="100n"/>
 <part name="C4" library="rcl" deviceset="C-EU" device="C1206K" value="100n"/>
@@ -13457,12 +13457,12 @@ Source: http://www.st.com/stonline/products/literature/ds/7194/ld1117axx.pdf</de
 <part name="GND4" library="supply1" deviceset="GND" device=""/>
 <part name="C8" library="rcl" deviceset="C-EU" device="C1206K" value="100n"/>
 <part name="GND7" library="supply1" deviceset="GND" device=""/>
-<part name="R3" library="rcl" deviceset="R-EU_" device="M1206"/>
-<part name="R5" library="rcl" deviceset="R-EU_" device="M1206"/>
-<part name="R7" library="rcl" deviceset="R-EU_" device="M1206"/>
-<part name="R4" library="rcl" deviceset="R-EU_" device="M1206"/>
-<part name="R6" library="rcl" deviceset="R-EU_" device="M1206"/>
-<part name="R8" library="rcl" deviceset="R-EU_" device="M1206"/>
+<part name="R3" library="rcl" deviceset="R-EU_" device="M1206" value="18k"/>
+<part name="R5" library="rcl" deviceset="R-EU_" device="M1206" value="18k"/>
+<part name="R7" library="rcl" deviceset="R-EU_" device="M1206" value="18k"/>
+<part name="R4" library="rcl" deviceset="R-EU_" device="M1206" value="33k"/>
+<part name="R6" library="rcl" deviceset="R-EU_" device="M1206" value="33k"/>
+<part name="R8" library="rcl" deviceset="R-EU_" device="M1206" value="33k"/>
 <part name="GND10" library="supply1" deviceset="GND" device=""/>
 <part name="GND11" library="supply1" deviceset="GND" device=""/>
 <part name="GND12" library="supply1" deviceset="GND" device=""/>
