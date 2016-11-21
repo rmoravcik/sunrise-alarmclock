@@ -51,19 +51,19 @@ const uint8_t ssd1306_init_sequence [] PROGMEM = {	// Initialization Sequence
 	0x00,			// ---set low column address
 	0x10,			// ---set high column address
 	0x40,			// --set start line address
-	0x81, 0x3F,		// Set contrast control register
+	0x81, 0xCF,		// Set contrast control register
 	0xA1,			// Set Segment Re-map. A0=address mapped; A1=address 127 mapped. 
 	0xA6,			// Set display mode. A6=Normal; A7=Inverse
-	0xA8, 0x3F,		// Set multiplex ratio(1 to 64)
+	0xA8, 0x1F,		// Set multiplex ratio(1 to 64)
 	0xA4,			// Output RAM to Display
 					// 0xA4=Output follows RAM content; 0xA5,Output ignores RAM content
 	0xD3, 0x00,		// Set display offset. 00 = no offset
 	0xD5,			// --set display clock divide ratio/oscillator frequency
-	0xF0,			// --set divide ratio
-	0xD9, 0x22,		// Set pre-charge period
-	0xDA, 0x12,		// Set com pins hardware configuration		
+	0x80,			// --set divide ratio
+	0xD9, 0xF1,		// Set pre-charge period
+	0xDA, 0x02,		// Set com pins hardware configuration		
 	0xDB,			// --set vcomh
-	0x20,			// 0x20,0.77xVcc
+	0x40,			// 0x20,0.77xVcc
 	0x8D, 0x14,		// Set DC-DC enable
 	0xAF			// Display ON in normal mode
 	
@@ -121,7 +121,9 @@ void ssd1306_send_byte(uint8_t byte)
 
 void ssd1306_send_command_start(void) {
 	ssd1306_xfer_start();
+#ifndef DS_RTC_LIB
 	ssd1306_send_byte(SSD1306_SA);  // Slave address, SA0=0
+#endif
 	ssd1306_send_byte(0x00);	// write command
 }
 
@@ -139,7 +141,9 @@ void ssd1306_send_command(uint8_t command)
 void ssd1306_send_data_start(void)
 {
 	ssd1306_xfer_start();
+#ifndef DS_RTC_LIB
 	ssd1306_send_byte(SSD1306_SA);
+#endif
 	ssd1306_send_byte(0x40);	//write data
 }
 
@@ -182,6 +186,18 @@ void ssd1306_setpos(uint8_t x, uint8_t y)
 
 void ssd1306_fill4(uint8_t p1, uint8_t p2, uint8_t p3, uint8_t p4) {
 	ssd1306_setpos(0, 0);
+#ifdef DS_RTC_LIB
+	for (uint16_t i = 0; i < 32; i++) {
+		ssd1306_send_data_start();
+		for (uint16_t j = 0; j < 4; j++) {
+			ssd1306_send_byte(p1);
+			ssd1306_send_byte(p2);
+			ssd1306_send_byte(p3);
+			ssd1306_send_byte(p4);
+		}
+		ssd1306_send_data_stop();
+	}
+#else
 	ssd1306_send_data_start();
 	for (uint16_t i = 0; i < 128 * 8 / 4; i++) {
 		ssd1306_send_byte(p1);
@@ -190,6 +206,7 @@ void ssd1306_fill4(uint8_t p1, uint8_t p2, uint8_t p3, uint8_t p4) {
 		ssd1306_send_byte(p4);
 	}
 	ssd1306_send_data_stop();
+#endif
 }
 
 void ssd1306_fill2(uint8_t p1, uint8_t p2) {

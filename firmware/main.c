@@ -90,9 +90,7 @@ ISR(INT1_vect, ISR_NOBLOCK)
 ISR(PCINT1_vect, ISR_NOBLOCK)
 {
     struct tm* time = NULL;
-#ifdef DEBUG
     char buf[50];
-#endif
 
     time = rtc2_get_time();
 
@@ -101,7 +99,10 @@ ISR(PCINT1_vect, ISR_NOBLOCK)
     if (sec != time->sec) {
         sec = time->sec;
 
-//        ssd1306_string_font8x16xy(10, 1, "Tinusaur");
+    sprintf(buf, "%02d:%02d:%02d",
+            time->hour, time->min, time->sec);
+    ssd1306_string_font8x16xy(10, 1, buf);
+
 
 #ifdef DEBUG
         if (debug & DEBUG_RTC) {
@@ -357,6 +358,8 @@ int main(void)
     alarm_init();
 
     sei();
+
+    ssd1306_clear();
 
     while (1) {
         if (status & SET_ALARM) {

@@ -28,7 +28,11 @@
 #define SSD1306_SDA		PB0	// SDA,	Pin 4 on SSD1306 Board
 #endif
 #ifndef SSD1306_SA
+#ifdef DS_RTC_LIB
+#define SSD1306_SA		0x3C	// Slave address
+#else
 #define SSD1306_SA		0x78	// Slave address
+#endif
 #endif
 
 // ----------------------------------------------------------------------------
