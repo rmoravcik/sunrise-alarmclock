@@ -30,6 +30,7 @@ FORMAT = ihex
 
 # List C source files here. (C dependencies are automatically generated.)
 SRC = main.c \
+      audio.c \
       command.c \
       led.c \
       rtc_wrapper.c \

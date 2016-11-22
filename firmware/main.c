@@ -26,8 +26,9 @@
 #include "ssd1306xled/ssd1306xled/ssd1306xled.h"
 #include "ssd1306xled/ssd1306xled/ssd1306xled25x32.h"
 
-#include "command.h"
 #include "common.h"
+#include "audio.h"
+#include "command.h"
 #include "led.h"
 #include "rtc_wrapper.h"
 
@@ -189,12 +190,17 @@ ISR(PCINT1_vect, ISR_NOBLOCK)
                 status |= ALARM_RUNNING;
                 period = 0;
 
-                // FIXME: Start playback
+                // Start playback
+                audio_play_alarm();
             }
         }
     }
 
     if (status & ALARM_STOP_REQUEST) {
+        if (audio_is_playing()) {
+            audio_stop_playback();
+        }
+
         if (status & PREALARM_RUNNING) {
             status &= ~PREALARM_RUNNING;
             status |= PREALARM_STOPPING;
@@ -367,6 +373,8 @@ int main(void)
     snooze_irq_init();
 
     alarm_init();
+
+    audio_init();
 
     sei();
 
