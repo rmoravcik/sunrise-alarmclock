@@ -29,21 +29,25 @@
 #include "font25x32.h"
 
 void ssd1306_string_font25x32xy(uint8_t x, uint8_t y, const char s[]) {
-	uint16_t ch, k = 0;
-	while (s[k] != '\0') {
-		ch = s[k] - 48;
-		if (x > 103) {
-			x = 0;
-		}
-		ssd1306_setpos(x, y);
-		for (uint8_t i = 0; i < 25; i++) {
-			ssd1306_send_data_start();
-			for (uint8_t j = 0; j < 4; j++) {
-				ssd1306_send_byte(pgm_read_byte(&ssd1306xled_font25x32[100 * ch + 4 * i + j]));
-			}
-			ssd1306_send_data_stop();
-		}
-		x += 25;
-		k++;
-	}
+    uint16_t ch, k = 0;
+
+    while (s[k] != '\0') {
+        ch = s[k] - 48;
+        if (x > 103) {
+            x = 0;
+        }
+
+        ssd1306_setpos(x, y);
+
+        for (uint8_t i = 0; i < 25; i++) {
+            ssd1306_send_data_start();
+            for (uint8_t j = 0; j < 4; j++) {
+                ssd1306_send_byte(pgm_read_byte(&ssd1306xled_font25x32[100 * ch + 4 * i + j]));
+            }
+            ssd1306_send_data_stop();
+        }
+
+        x += 25;
+        k++;
+    }
 }

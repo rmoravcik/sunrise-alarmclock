@@ -70,4 +70,8 @@ void ssd1306_draw_bmp(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1, const uint
 
 // ============================================================================
 
+#ifdef DS_RTC_LIB
+void ssd1306_set_display(uint8_t on);
+#endif
+
 #endif

@@ -23,6 +23,8 @@ extern uint8_t debug;
 #define ALARM_RUNNING_MIN	1
 #define ALARM_STOPPING_MIN	5
 
+#define DISPLAY_ON_SEC		10
+
 #define COMMAND_PING "PING?"
 #define COMMAND_PING_RSP "PONG+OK"
 
@@ -57,6 +59,7 @@ typedef struct {
 #define ALARM_RUNNING		0x0100
 #define ALARM_STOPPING		0x0200
 #define ALARM_STOP_REQUEST	0x0400
+#define DISPLAY_ON		0x0800
 
 #define WDAY_TO_ID(x)		(x - 1)
 #define TO_PERIOD(x)		(120 * (uint16_t)x)

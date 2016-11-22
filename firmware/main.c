@@ -40,6 +40,7 @@ conf_t conf;
 
 volatile uint32_t status = 0;
 volatile uint16_t period = 0;
+volatile uint8_t display_period = 0;
 volatile uint8_t wday = 0;
 volatile uint8_t sec = 0;
 
@@ -83,7 +84,7 @@ ISR(INT1_vect, ISR_NOBLOCK)
 #endif
         status |= ALARM_STOP_REQUEST;
     } else {
-        // FIXME: Just show time on display
+        status |= DISPLAY_ON;
     }
 }
 
@@ -99,10 +100,20 @@ ISR(PCINT1_vect, ISR_NOBLOCK)
     if (sec != time->sec) {
         sec = time->sec;
 
-    sprintf(buf, "%02d:%02d",
-            time->hour, time->min);
-    ssd1306_string_font25x32xy(3, 0, buf);
+        if (status & (DISPLAY_ON | PREALARM_RUNNING | PREALARM_STOPPING |
+                                   ALARM_RUNNING | ALARM_STOPPING)) {
+            sprintf(buf, "%02d:%02d", time->hour, time->min);
+            ssd1306_string_font25x32xy(3, 0, buf);
 
+            display_period++;
+
+            if (display_period > DISPLAY_ON_SEC) {
+                ssd1306_clear();
+                status &= ~DISPLAY_ON;
+            }
+        } else {
+            display_period = 0;
+        }
 
 #ifdef DEBUG
         if (debug & DEBUG_RTC) {
@@ -360,6 +371,8 @@ int main(void)
     sei();
 
     ssd1306_clear();
+
+    status |= DISPLAY_ON;
 
     while (1) {
         if (status & SET_ALARM) {
