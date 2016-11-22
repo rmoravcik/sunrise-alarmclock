@@ -29,7 +29,7 @@
 #include "command.h"
 #include "common.h"
 #include "led.h"
-#include "rtc2.h"
+#include "rtc_wrapper.h"
 
 #ifdef DEBUG
 uint8_t debug;
@@ -93,7 +93,7 @@ ISR(PCINT1_vect, ISR_NOBLOCK)
     struct tm* time = NULL;
     char buf[50];
 
-    time = rtc2_get_time();
+    time = rtc_wrapper_get_time();
 
     // PC2 is pin change interrupt, so 1Hz SQW signal
     // from DS1307 is triggering this interrupt every 500ms
@@ -117,7 +117,7 @@ ISR(PCINT1_vect, ISR_NOBLOCK)
 
 #ifdef DEBUG
         if (debug & DEBUG_RTC) {
-            sprintf(buf, "rtc2_get_time(): %02d:%02d:%02d (%d)\r\n",
+            sprintf(buf, "Time: %02d:%02d:%02d (%d)\r\n",
                     time->hour, time->min, time->sec, time->wday);
             uartSendString(buf);
         }
@@ -134,21 +134,21 @@ ISR(PCINT1_vect, ISR_NOBLOCK)
                                    conf.alarm[WDAY_TO_ID(next_wday)].min,
                                    &prealarm_hour, &prealarm_min);
 
-                rtc2_set_prealarm(prealarm_hour,
-                                  prealarm_min);
+                rtc_wrapper_set_prealarm(prealarm_hour,
+                                         prealarm_min);
             }
         }
 
         if (time->wday != wday) {
             if ((conf.alarm[WDAY_TO_ID(time->wday)].hour != ALARM_OFF_HOUR) &&
                 (conf.alarm[WDAY_TO_ID(time->wday)].min != ALARM_OFF_MIN)) {
-                rtc2_set_alarm(conf.alarm[WDAY_TO_ID(time->wday)].hour,
-                               conf.alarm[WDAY_TO_ID(time->wday)].min);
+                rtc_wrapper_set_alarm(conf.alarm[WDAY_TO_ID(time->wday)].hour,
+                                      conf.alarm[WDAY_TO_ID(time->wday)].min);
             }
 
             wday = time->wday;
         }
-        if (rtc2_check_prealarm(time)) {
+        if (rtc_wrapper_check_prealarm(time)) {
             if (status & (PREALARM_RUNNING | ALARM_RUNNING | ALARM_STOP_REQUEST)) {
 #ifdef DEBUG
                 if (debug & DEBUG_FSM) {
@@ -168,7 +168,7 @@ ISR(PCINT1_vect, ISR_NOBLOCK)
             }
         }
 
-        if (rtc2_check_alarm(time)) {
+        if (rtc_wrapper_check_alarm(time)) {
             if (status & (ALARM_STOP_REQUEST)) {
 #ifdef DEBUG
                 if (debug & DEBUG_FSM) {
@@ -283,7 +283,7 @@ void alarm_init(void)
 {
     struct tm* time = NULL;
 
-    time = rtc2_get_time();
+    time = rtc_wrapper_get_time();
 
     wday = time->wday;
 
@@ -294,8 +294,8 @@ void alarm_init(void)
     // Check if ALARM for current day is set and set it
     if ((conf.alarm[WDAY_TO_ID(wday)].hour != ALARM_OFF_HOUR) &&
         (conf.alarm[WDAY_TO_ID(wday)].min != ALARM_OFF_MIN)) {
-        rtc2_set_alarm(conf.alarm[WDAY_TO_ID(wday)].hour,
-                       conf.alarm[WDAY_TO_ID(wday)].min);
+        rtc_wrapper_set_alarm(conf.alarm[WDAY_TO_ID(wday)].hour,
+                              conf.alarm[WDAY_TO_ID(wday)].min);
 
         if ((conf.alarm[WDAY_TO_ID(wday)].hour == 0) &&
             (conf.alarm[WDAY_TO_ID(wday)].min < PREALARM_RUNNING_MIN)) {
@@ -311,14 +311,14 @@ void alarm_init(void)
                 calc_prealarm_time(conf.alarm[WDAY_TO_ID(wday)].hour,
                                    conf.alarm[WDAY_TO_ID(wday)].min,
                                    &prealarm_hour, &prealarm_min);
-                rtc2_set_prealarm(prealarm_hour,
-                                  prealarm_min);
+                rtc_wrapper_set_prealarm(prealarm_hour,
+                                         prealarm_min);
             }
         }
     } else {
         // If ALARM is disabled, reset both alarms
-        rtc2_reset_alarm();
-        rtc2_reset_prealarm();
+        rtc_wrapper_reset_alarm();
+        rtc_wrapper_reset_prealarm();
     }
 
     // If current time is >= 23:40, check if ALARM for the next day is set
@@ -334,8 +334,8 @@ void alarm_init(void)
             calc_prealarm_time(conf.alarm[WDAY_TO_ID(next_wday)].hour,
                                conf.alarm[WDAY_TO_ID(next_wday)].min,
                                &prealarm_hour, &prealarm_min);
-            rtc2_set_prealarm(prealarm_hour,
-                              prealarm_min);
+            rtc_wrapper_set_prealarm(prealarm_hour,
+                                     prealarm_min);
         }
     }
 }
@@ -358,7 +358,7 @@ int main(void)
 
     twi_init_master();
 
-    rtc2_init();
+    rtc_wrapper_init();
 
     ssd1306_init();
 
@@ -394,14 +394,14 @@ int main(void)
             if (id == WDAY_TO_ID(wday)) {
                 struct tm* time = NULL;
 
-                time = rtc2_get_time();
+                time = rtc_wrapper_get_time();
 
 
                 if ((conf.alarm[id].hour != ALARM_OFF_HOUR) &&
                     (conf.alarm[id].min != ALARM_OFF_MIN)) {
                     // Set ALARM always
-                    rtc2_set_alarm(conf.alarm[id].hour,
-                                   conf.alarm[id].min);
+                    rtc_wrapper_set_alarm(conf.alarm[id].hour,
+                                          conf.alarm[id].min);
 
                     if ((conf.alarm[id].hour == 0) &&
                         (conf.alarm[id].min < PREALARM_RUNNING_MIN)) {
@@ -417,13 +417,13 @@ int main(void)
                             calc_prealarm_time(conf.alarm[id].hour,
                                                conf.alarm[id].min,
                                                &prealarm_hour, &prealarm_min);
-                            rtc2_set_prealarm(prealarm_hour,
-                                              prealarm_min);
+                            rtc_wrapper_set_prealarm(prealarm_hour,
+                                                     prealarm_min);
                         }
                     }
                 } else {
                     // Reset ALARM always
-                    rtc2_reset_alarm();
+                    rtc_wrapper_reset_alarm();
 
                     if ((time->hour == 23) &&
                         (time->min >= (60 - PREALARM_RUNNING_MIN))) {
@@ -431,7 +431,7 @@ int main(void)
                         // because PREALARM for next day alarm should be
                         // already set
                     } else {
-                        rtc2_reset_prealarm();
+                        rtc_wrapper_reset_prealarm();
                     }
                 }
             }
@@ -449,7 +449,7 @@ int main(void)
             }
 #endif
 
-            rtc2_set_time(&set_time);
+            rtc_wrapper_set_time(&set_time);
             status &= ~SET_DATE;
         }
 

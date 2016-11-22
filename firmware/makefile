@@ -32,7 +32,7 @@ FORMAT = ihex
 SRC = main.c \
       command.c \
       led.c \
-      rtc2.c \
+      rtc_wrapper.c \
       ds_rtc_lib/library-gcc/twi.c \
       ds_rtc_lib/library-gcc/twi-lowlevel.c \
       ds_rtc_lib/library-gcc/rtc.c \
