@@ -24,7 +24,7 @@
 #include "ds_rtc_lib/library-gcc/test/uart.h"
 
 #include "ssd1306xled/ssd1306xled/ssd1306xled.h"
-#include "ssd1306xled/ssd1306xled/ssd1306xled8x16.h"
+#include "ssd1306xled/ssd1306xled/ssd1306xled25x32.h"
 
 #include "command.h"
 #include "common.h"
@@ -99,9 +99,9 @@ ISR(PCINT1_vect, ISR_NOBLOCK)
     if (sec != time->sec) {
         sec = time->sec;
 
-    sprintf(buf, "%02d:%02d:%02d",
-            time->hour, time->min, time->sec);
-    ssd1306_string_font8x16xy(10, 1, buf);
+    sprintf(buf, "%02d:%02d",
+            time->hour, time->min);
+    ssd1306_string_font25x32xy(3, 0, buf);
 
 
 #ifdef DEBUG

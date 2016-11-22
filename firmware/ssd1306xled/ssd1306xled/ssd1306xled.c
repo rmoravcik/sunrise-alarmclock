@@ -43,13 +43,12 @@
 
 const uint8_t ssd1306_init_sequence [] PROGMEM = {	// Initialization Sequence
 	0xAE,			// Display OFF (sleep mode)
-	0x20, 0b00,		// Set Memory Addressing Mode
+	0x20, 0b01,		// Set Memory Addressing Mode
 					// 00=Horizontal Addressing Mode; 01=Vertical Addressing Mode;
 					// 10=Page Addressing Mode (RESET); 11=Invalid
 	0xB0,			// Set Page Start Address for Page Addressing Mode, 0-7
 	0xC8,			// Set COM Output Scan Direction
-	0x00,			// ---set low column address
-	0x10,			// ---set high column address
+	0x22, 0x00, 0x03,
 	0x40,			// --set start line address
 	0x81, 0xCF,		// Set contrast control register
 	0xA1,			// Set Segment Re-map. A0=address mapped; A1=address 127 mapped. 
@@ -66,7 +65,6 @@ const uint8_t ssd1306_init_sequence [] PROGMEM = {	// Initialization Sequence
 	0x40,			// 0x20,0.77xVcc
 	0x8D, 0x14,		// Set DC-DC enable
 	0xAF			// Display ON in normal mode
-	
 };
 
 // ----------------------------------------------------------------------------
@@ -187,14 +185,12 @@ void ssd1306_setpos(uint8_t x, uint8_t y)
 void ssd1306_fill4(uint8_t p1, uint8_t p2, uint8_t p3, uint8_t p4) {
 	ssd1306_setpos(0, 0);
 #ifdef DS_RTC_LIB
-	for (uint16_t i = 0; i < 32; i++) {
+	for (uint8_t i = 0; i < 128; i++) {
 		ssd1306_send_data_start();
-		for (uint16_t j = 0; j < 4; j++) {
 			ssd1306_send_byte(p1);
 			ssd1306_send_byte(p2);
 			ssd1306_send_byte(p3);
 			ssd1306_send_byte(p4);
-		}
 		ssd1306_send_data_stop();
 	}
 #else
