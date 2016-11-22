@@ -33,8 +33,7 @@
 #define GPIO_WTV020_CLK		PB1
 #define GPIO_WTV020_RESET	PB2
 
-static uint8_t EEMEM eeprom_volume = SOUND_VOLUME_7;
-static uint8_t volume;
+static uint8_t volume = AUDIO_VOLUME_7;
 
 static bool is_playing = false;
 
@@ -76,14 +75,6 @@ static void wtv020_send_command(uint16_t command)
 
 void audio_init(void)
 {
-    volume = eeprom_read_byte(&eeprom_volume);
-
-    // Initialize with default value if eeprom is corrupted
-    if ((volume < SOUND_VOLUME_0) || (volume > SOUND_VOLUME_7)) {
-        volume = SOUND_VOLUME_7;
-        eeprom_write_byte(&eeprom_volume, volume);
-    }
-
     // Set DATA and RESET pins as an outputs
     DDRB |= _BV(GPIO_WTV020_DATA) | _BV(GPIO_WTV020_CLK) | _BV(GPIO_WTV020_RESET);
 
@@ -110,10 +101,8 @@ void audio_play_alarm(void)
 
 void audio_set_volume(uint8_t level)
 {
-    if (volume != level) {
-        volume = level;
-        eeprom_write_byte(&eeprom_volume, volume);
-    }
+    if (level > AUDIO_VOLUME_7)
+        level = AUDIO_VOLUME_7;
 
     wtv020_send_command(VOLUME_ADJ + level);
 }

@@ -23,14 +23,14 @@
 #include <stdbool.h>
 
 enum {
-    SOUND_VOLUME_0 = 0,
-    SOUND_VOLUME_1,
-    SOUND_VOLUME_2,
-    SOUND_VOLUME_3,
-    SOUND_VOLUME_4,
-    SOUND_VOLUME_5,
-    SOUND_VOLUME_6,
-    SOUND_VOLUME_7,
+    AUDIO_VOLUME_0 = 0,
+    AUDIO_VOLUME_1,
+    AUDIO_VOLUME_2,
+    AUDIO_VOLUME_3,
+    AUDIO_VOLUME_4,
+    AUDIO_VOLUME_5,
+    AUDIO_VOLUME_6,
+    AUDIO_VOLUME_7,
 };
 
 void audio_init(void);

@@ -195,6 +195,7 @@ ISR(PCINT1_vect, ISR_NOBLOCK)
                 period = 0;
 
                 // Start playback
+                audio_set_volume(AUDIO_VOLUME_1);
                 audio_play_alarm();
             }
         }
