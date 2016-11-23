@@ -27,6 +27,7 @@
 
 #define PLAY_1ST_VOICE		0x0000
 #define VOLUME_ADJ		0xFFF0
+#define START_PLAYBACK		0xFFFE
 #define STOP_PLAYBACK		0xFFFF
 
 #define GPIO_WTV020_DATA	PB0
@@ -50,27 +51,27 @@ static void wtv020_send_command(uint16_t command)
     uint8_t i;
 
     PORTB &= ~_BV(GPIO_WTV020_CLK);
-    _delay_us(1950);
+    _delay_us(1900);
 
     for (i = 0; i < 16; i++) {
         PORTB &= ~_BV(GPIO_WTV020_CLK);
-        _delay_us(50);
+        _delay_us(100);
 
-        if (command & 0x0001) {
+        if ((command & 0x8000) != 0) {
             PORTB |= _BV(GPIO_WTV020_DATA);
         } else {
             PORTB &= ~_BV(GPIO_WTV020_DATA);
         }
 
-        _delay_us(50);
+        _delay_us(100);
 
         PORTB |= _BV(GPIO_WTV020_CLK);
 
-        _delay_us(100);
+        _delay_us(200);
 
-        command >>= 1;
+        command = command << 1;
     }
-    _delay_us(1900);
+    _delay_us(1800);
 }
 
 void audio_init(void)
@@ -79,13 +80,11 @@ void audio_init(void)
     DDRB |= _BV(GPIO_WTV020_DATA) | _BV(GPIO_WTV020_CLK) | _BV(GPIO_WTV020_RESET);
 
     // Set DATA and RESET pins to high
-    PORTD |= _BV(GPIO_WTV020_DATA) | _BV(GPIO_WTV020_CLK) | _BV(GPIO_WTV020_RESET);
+    PORTB |= _BV(GPIO_WTV020_DATA) | _BV(GPIO_WTV020_CLK) | _BV(GPIO_WTV020_RESET);
 
     _delay_ms(100);
 
     wtv020_reset();
-
-    wtv020_send_command(volume);
 }
 
 bool audio_is_playing(void)

@@ -90,6 +90,8 @@ ISR(INT1_vect, ISR_NOBLOCK)
         status |= ALARM_STOP_REQUEST;
     } else {
         status |= DISPLAY_ON;
+        audio_set_volume(AUDIO_VOLUME_7);
+        audio_play_alarm();
     }
 }
 
@@ -386,6 +388,9 @@ int main(void)
     ssd1306_clear();
 
     status |= DISPLAY_ON;
+
+    audio_set_volume(AUDIO_VOLUME_7);
+    audio_play_alarm();
 
     while (1) {
         if (status & SET_ALARM) {
