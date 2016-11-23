@@ -114,7 +114,7 @@ ISR(PCINT1_vect, ISR_NOBLOCK)
 
             display_period++;
 
-            if (display_period > DISPLAY_ON_SEC) {
+            if ((status & DISPLAY_ON) && (display_period > DISPLAY_ON_SEC)) {
                 ssd1306_clear();
                 status &= ~DISPLAY_ON;
             }
