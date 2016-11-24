@@ -40,9 +40,9 @@ static bool is_playing = false;
 
 static void wtv020_reset(void)
 {
-    PORTB &= ~_BV(GPIO_WTV020_RESET);
+    DDRB |= _BV(GPIO_WTV020_RESET);
     _delay_ms(5);
-    PORTB |= _BV(GPIO_WTV020_RESET);
+    DDRB &= ~_BV(GPIO_WTV020_RESET);
     _delay_ms(300);
 }
 
@@ -50,22 +50,22 @@ static void wtv020_send_command(uint16_t command)
 {
     uint8_t i;
 
-    PORTB &= ~_BV(GPIO_WTV020_CLK);
+    DDRB |= _BV(GPIO_WTV020_CLK);
     _delay_us(1900);
 
     for (i = 0; i < 16; i++) {
-        PORTB &= ~_BV(GPIO_WTV020_CLK);
+        DDRB |= _BV(GPIO_WTV020_CLK);
         _delay_us(100);
 
         if ((command & 0x8000) != 0) {
-            PORTB |= _BV(GPIO_WTV020_DATA);
+            DDRB &= ~_BV(GPIO_WTV020_DATA);
         } else {
-            PORTB &= ~_BV(GPIO_WTV020_DATA);
+            DDRB |= _BV(GPIO_WTV020_DATA);
         }
 
         _delay_us(100);
 
-        PORTB |= _BV(GPIO_WTV020_CLK);
+        DDRB &= ~_BV(GPIO_WTV020_CLK);
 
         _delay_us(200);
 
@@ -76,11 +76,9 @@ static void wtv020_send_command(uint16_t command)
 
 void audio_init(void)
 {
-    // Set DATA and RESET pins as an outputs
-    DDRB |= _BV(GPIO_WTV020_DATA) | _BV(GPIO_WTV020_CLK) | _BV(GPIO_WTV020_RESET);
-
-    // Set DATA and RESET pins to high
-    PORTB |= _BV(GPIO_WTV020_DATA) | _BV(GPIO_WTV020_CLK) | _BV(GPIO_WTV020_RESET);
+    // Set DATA, CLK and RESET to HIGH impedance, WTV020 has pull-ups
+    DDRB &= ~(_BV(GPIO_WTV020_DATA) | _BV(GPIO_WTV020_CLK) | _BV(GPIO_WTV020_RESET));
+    PORTB &= ~(_BV(GPIO_WTV020_DATA) | _BV(GPIO_WTV020_CLK) | _BV(GPIO_WTV020_RESET));
 
     _delay_ms(100);
 

@@ -90,8 +90,6 @@ ISR(INT1_vect, ISR_NOBLOCK)
         status |= ALARM_STOP_REQUEST;
     } else {
         status |= DISPLAY_ON;
-        audio_set_volume(AUDIO_VOLUME_7);
-        audio_play_alarm();
     }
 }
 
@@ -197,7 +195,7 @@ ISR(PCINT1_vect, ISR_NOBLOCK)
                 period = 0;
 
                 // Start playback
-                audio_set_volume(AUDIO_VOLUME_1);
+                audio_set_volume(AUDIO_VOLUME_7);
                 audio_play_alarm();
             }
         }
@@ -246,6 +244,7 @@ ISR(PCINT1_vect, ISR_NOBLOCK)
                 uartSendString("PCINT1_vect(): PREALARM stopped\r\n");
             }
 #endif
+            ssd1306_clear();
             status &= ~PREALARM_STOPPING;
         }
 
@@ -258,6 +257,7 @@ ISR(PCINT1_vect, ISR_NOBLOCK)
                 uartSendString("PCINT1_vect(): ALARM stopped\r\n");
             }
 #endif
+            ssd1306_clear();
             status &= ~ALARM_STOPPING;
         }
 
@@ -388,9 +388,6 @@ int main(void)
     ssd1306_clear();
 
     status |= DISPLAY_ON;
-
-    audio_set_volume(AUDIO_VOLUME_7);
-    audio_play_alarm();
 
     while (1) {
         if (status & SET_ALARM) {
