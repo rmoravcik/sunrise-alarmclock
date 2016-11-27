@@ -39,7 +39,7 @@ extern uint8_t debug;
 
 #define PREALARM_RUNNING_MIN	20
 #define PREALARM_STOPPING_MIN	5
-#define ALARM_RUNNING_MIN	1
+#define ALARM_RUNNING_SEC	52
 #define ALARM_STOPPING_MIN	5
 
 #define DISPLAY_ON_SEC		10
@@ -82,5 +82,6 @@ typedef struct {
 
 #define WDAY_TO_ID(x)		(x - 1)
 #define TO_PERIOD(x)		(120 * (uint16_t)x)
+#define SEC_TO_PERIOD(x)	(2 * (uint16_t)x)
 
 #endif

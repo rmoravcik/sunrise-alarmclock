@@ -195,7 +195,7 @@ ISR(PCINT1_vect, ISR_NOBLOCK)
                 period = 0;
 
                 // Start playback
-                audio_set_volume(AUDIO_VOLUME_7);
+                audio_set_volume(AUDIO_VOLUME_5);
                 audio_play_alarm();
             }
         }
@@ -221,7 +221,7 @@ ISR(PCINT1_vect, ISR_NOBLOCK)
         led_sunrise(period);
         period++;
     } else if (status & ALARM_RUNNING) {
-        if (period >= (TO_PERIOD(ALARM_RUNNING_MIN))) {
+        if (period >= (SEC_TO_PERIOD(ALARM_RUNNING_SEC))) {
 #ifdef DEBUG
             if (debug & DEBUG_FSM) {
                 uartSendString("PCINT1_vect(): ALARM timeout\r\n");
@@ -232,6 +232,11 @@ ISR(PCINT1_vect, ISR_NOBLOCK)
             status |= ALARM_STOPPING;
             period = 0;
         } else {
+            if (period == SEC_TO_PERIOD(ALARM_RUNNING_SEC / 2)) {
+                // Start playback again
+                audio_set_volume(AUDIO_VOLUME_6);
+                audio_play_alarm();
+            }
             led_on();
             period++;
         }
