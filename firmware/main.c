@@ -43,7 +43,7 @@ uint8_t debug;
 static conf_t EEMEM eeprom_conf;
 conf_t conf;
 
-volatile uint32_t status = 0;
+volatile uint16_t status = 0;
 volatile uint16_t period = 0;
 volatile uint8_t display_period = 0;
 volatile uint8_t wday = 0;
@@ -81,15 +81,30 @@ static void calc_prealarm_time(uint8_t hour, uint8_t min,
 
 ISR(INT1_vect, ISR_NOBLOCK)
 {
-    if (status & (PREALARM_RUNNING | ALARM_RUNNING)) {
+    uint8_t press_counter = 0;
+
+    while (!(PIND & _BV(PD3)) && press_counter < 10) {
+        _delay_ms(200);
+        press_counter++;
+    }
+
+    // short press of func button
+    if (press_counter == 1) {
+        if (status & (PREALARM_RUNNING | ALARM_RUNNING)) {
 #ifdef DEBUG
-        if (debug & DEBUG_FSM) {
-            uartSendString("INT1_vect(): Reqest to stop PREALARM/ALARM\r\n");
-        }
+            if (debug & DEBUG_FSM) {
+                uartSendString("INT1_vect(): Reqest to stop PREALARM/ALARM\r\n");
+            }
 #endif
-        status |= ALARM_STOP_REQUEST;
-    } else {
-        status |= DISPLAY_ON;
+            status |= ALARM_STOP_REQUEST;
+        } else {
+#ifdef DEBUG
+            if (debug & DEBUG_FSM) {
+                uartSendString("INT1_vect(): Display on\r\n");
+            }
+#endif
+            status |= DISPLAY_ON;
+        }
     }
 }
 
@@ -122,8 +137,8 @@ ISR(PCINT1_vect, ISR_NOBLOCK)
 
 #ifdef DEBUG
         if (debug & DEBUG_RTC) {
-            sprintf(buf, "Time: %02d:%02d:%02d (%d)\r\n",
-                    time->hour, time->min, time->sec, time->wday);
+            sprintf(buf, "Time: %02d:%02d:%02d (%d) (%04x)\r\n",
+                    time->hour, time->min, time->sec, time->wday, status);
             uartSendString(buf);
         }
 #endif
@@ -174,6 +189,13 @@ ISR(PCINT1_vect, ISR_NOBLOCK)
         }
 
         if (rtc_wrapper_check_alarm(time)) {
+            // Check if prealarm was previously running
+            if (status & PREALARM_RUNNING) {
+                status |= PREALARM_WAS_RUNNING;
+            } else {
+                status &= ~PREALARM_WAS_RUNNING;
+            }
+
             if (status & (ALARM_STOP_REQUEST)) {
 #ifdef DEBUG
                 if (debug & DEBUG_FSM) {
@@ -207,11 +229,11 @@ ISR(PCINT1_vect, ISR_NOBLOCK)
         }
 
         if (status & PREALARM_RUNNING) {
-            status &= ~PREALARM_RUNNING;
+            status &= ~(PREALARM_RUNNING | ALARM_STOP_REQUEST);
             status |= PREALARM_STOPPING;
             period = 0;
         } else if (status & ALARM_RUNNING) {
-            status &= ~ALARM_RUNNING;
+            status &= ~(ALARM_RUNNING | ALARM_STOP_REQUEST);
             status |= ALARM_STOPPING;
             period = 0;
         }
@@ -237,7 +259,10 @@ ISR(PCINT1_vect, ISR_NOBLOCK)
                 audio_set_volume(AUDIO_VOLUME_6);
                 audio_play_alarm();
             }
-            led_on();
+
+            if (status & PREALARM_WAS_RUNNING) {
+                led_on();
+            }
             period++;
         }
     }
@@ -263,10 +288,12 @@ ISR(PCINT1_vect, ISR_NOBLOCK)
             }
 #endif
             ssd1306_clear();
-            status &= ~ALARM_STOPPING;
+            status &= ~(ALARM_STOPPING | PREALARM_WAS_RUNNING);
         }
 
-        led_sunset(period);
+        if (status & PREALARM_WAS_RUNNING) {
+            led_sunset(period);
+        }
         period++;
     }
 }
@@ -361,7 +388,7 @@ void alarm_init(void)
 int main(void)
 {
 #ifdef DEBUG
-    debug = DEBUG_RTC | DEBUG_LED | DEBUG_COMMAND;
+    debug = DEBUG_RTC | DEBUG_LED | DEBUG_FSM | DEBUG_COMMAND;
     char buf[50];
 #endif
 

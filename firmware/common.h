@@ -22,7 +22,7 @@
 
 #include <avr/eeprom.h>
 
-//#define DEBUG 1
+#define DEBUG 1
 
 #ifdef DEBUG
 extern uint8_t debug;
@@ -75,10 +75,11 @@ typedef struct {
 #define SET_DATE		0x0020
 #define PREALARM_RUNNING	0x0040
 #define PREALARM_STOPPING	0x0080
-#define ALARM_RUNNING		0x0100
-#define ALARM_STOPPING		0x0200
-#define ALARM_STOP_REQUEST	0x0400
-#define DISPLAY_ON		0x0800
+#define PREALARM_WAS_RUNNING	0x0100
+#define ALARM_RUNNING		0x0200
+#define ALARM_STOPPING		0x0400
+#define ALARM_STOP_REQUEST	0x0800
+#define DISPLAY_ON		0x1000
 
 #define WDAY_TO_ID(x)		(x - 1)
 #define TO_PERIOD(x)		(120 * (uint16_t)x)
