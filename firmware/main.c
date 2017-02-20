@@ -61,10 +61,22 @@ static inline uint8_t NEXT_WDAY(uint8_t current)
     return next;
 }
 
-static void calc_prealarm_time(uint8_t hour, uint8_t min,
+static bool conf_alarm_is_on(uint8_t wday)
+{
+    if ((conf.alarm[WDAY_TO_ID(wday)].hour != ALARM_OFF_HOUR) &&
+        (conf.alarm[WDAY_TO_ID(wday)].min != ALARM_OFF_MIN))
+        return true;
+    else
+        return false;
+}
+
+static void calc_prealarm_time(uint8_t wday,
                                uint8_t *prealarm_hour,
                                uint8_t *prealarm_min)
 {
+    uint8_t hour = conf.alarm[WDAY_TO_ID(wday)].hour;
+    uint8_t min = conf.alarm[WDAY_TO_ID(wday)].min;
+
     if (min < PREALARM_RUNNING_MIN) {
         *prealarm_min = 60 - PREALARM_RUNNING_MIN + min;
 
@@ -146,28 +158,31 @@ ISR(PCINT1_vect, ISR_NOBLOCK)
             (time->sec == 0)) {
             uint8_t next_wday = NEXT_WDAY(time->wday);
 
-            if ((conf.alarm[WDAY_TO_ID(next_wday)].hour != ALARM_OFF_HOUR) &&
-                (conf.alarm[WDAY_TO_ID(next_wday)].min != ALARM_OFF_MIN)) {
+            if (conf_alarm_is_on(next_wday)) {
                 uint8_t prealarm_hour, prealarm_min;
 
-                calc_prealarm_time(conf.alarm[WDAY_TO_ID(next_wday)].hour,
-                                   conf.alarm[WDAY_TO_ID(next_wday)].min,
-                                   &prealarm_hour, &prealarm_min);
+                calc_prealarm_time(next_wday,
+                                   &prealarm_hour,
+                                   &prealarm_min);
 
                 rtc_wrapper_set_prealarm(prealarm_hour,
                                          prealarm_min);
+            } else {
+                rtc_wrapper_reset_prealarm();
             }
         }
 
         if (time->wday != wday) {
-            if ((conf.alarm[WDAY_TO_ID(time->wday)].hour != ALARM_OFF_HOUR) &&
-                (conf.alarm[WDAY_TO_ID(time->wday)].min != ALARM_OFF_MIN)) {
+            if (conf_alarm_is_on(time->wday)) {
                 rtc_wrapper_set_alarm(conf.alarm[WDAY_TO_ID(time->wday)].hour,
                                       conf.alarm[WDAY_TO_ID(time->wday)].min);
+            } else {
+                rtc_wrapper_reset_alarm();
             }
 
             wday = time->wday;
         }
+
         if (rtc_wrapper_check_prealarm(time)) {
             if (status & (PREALARM_RUNNING | ALARM_RUNNING | ALARM_STOP_REQUEST)) {
 #ifdef DEBUG
@@ -327,6 +342,7 @@ void eeprom_init(void)
 void alarm_init(void)
 {
     struct tm* time = NULL;
+    uint8_t prealarm_wday;
 
     time = rtc_wrapper_get_time();
 
@@ -336,52 +352,32 @@ void alarm_init(void)
     uartSendString("alarm_init()\r\n");
 #endif
 
-    // Check if ALARM for current day is set and set it
-    if ((conf.alarm[WDAY_TO_ID(wday)].hour != ALARM_OFF_HOUR) &&
-        (conf.alarm[WDAY_TO_ID(wday)].min != ALARM_OFF_MIN)) {
+    // Set ALARM
+    if (conf_alarm_is_on(wday)) {
         rtc_wrapper_set_alarm(conf.alarm[WDAY_TO_ID(wday)].hour,
                               conf.alarm[WDAY_TO_ID(wday)].min);
-
-        if ((conf.alarm[WDAY_TO_ID(wday)].hour == 0) &&
-            (conf.alarm[WDAY_TO_ID(wday)].min < PREALARM_RUNNING_MIN)) {
-            // Do not set PREALARM if ALARM time is < 00:20
-            // PREALARM for these times is 23:40 - 23:59
-        } else {
-            if ((time->hour == 23) &&
-                (time->min >= (60 - PREALARM_RUNNING_MIN))) {
-                // Do not set PREALARM if current time is >= 23:40
-            } else {
-                uint8_t prealarm_hour, prealarm_min;
-
-                calc_prealarm_time(conf.alarm[WDAY_TO_ID(wday)].hour,
-                                   conf.alarm[WDAY_TO_ID(wday)].min,
-                                   &prealarm_hour, &prealarm_min);
-                rtc_wrapper_set_prealarm(prealarm_hour,
-                                         prealarm_min);
-            }
-        }
     } else {
-        // If ALARM is disabled, reset both alarms
         rtc_wrapper_reset_alarm();
-        rtc_wrapper_reset_prealarm();
     }
 
-    // If current time is >= 23:40, check if ALARM for the next day is set
-    // and set PREALARM
-    if ((time->hour == 23) &&
-        (time->min >= (60 - PREALARM_RUNNING_MIN))) {
-        uint8_t next_wday = NEXT_WDAY(wday);
+    // Set PREALARM
+    if ((time->hour == 23) && (time->min >= (60 - PREALARM_RUNNING_MIN))) {
+        prealarm_wday  = NEXT_WDAY(wday);
+    } else {
+        prealarm_wday  = wday;
+    }
 
-        if ((conf.alarm[WDAY_TO_ID(next_wday)].hour != ALARM_OFF_HOUR) &&
-            (conf.alarm[WDAY_TO_ID(next_wday)].min != ALARM_OFF_MIN)) {
-            uint8_t prealarm_hour, prealarm_min;
+    if (conf_alarm_is_on(prealarm_wday)) {
+        uint8_t prealarm_hour, prealarm_min;
 
-            calc_prealarm_time(conf.alarm[WDAY_TO_ID(next_wday)].hour,
-                               conf.alarm[WDAY_TO_ID(next_wday)].min,
-                               &prealarm_hour, &prealarm_min);
-            rtc_wrapper_set_prealarm(prealarm_hour,
-                                     prealarm_min);
-        }
+        calc_prealarm_time(prealarm_wday,
+                           &prealarm_hour,
+                           &prealarm_min);
+
+        rtc_wrapper_set_prealarm(prealarm_hour,
+                                 prealarm_min);
+    } else {
+        rtc_wrapper_reset_prealarm();
     }
 }
 
@@ -440,46 +436,36 @@ int main(void)
 
             if (id == WDAY_TO_ID(wday)) {
                 struct tm* time = NULL;
+                uint8_t prealarm_wday;
 
                 time = rtc_wrapper_get_time();
 
-
-                if ((conf.alarm[id].hour != ALARM_OFF_HOUR) &&
-                    (conf.alarm[id].min != ALARM_OFF_MIN)) {
-                    // Set ALARM always
+                // Set ALARM
+                if (conf_alarm_is_on(wday)) {
                     rtc_wrapper_set_alarm(conf.alarm[id].hour,
                                           conf.alarm[id].min);
-
-                    if ((conf.alarm[id].hour == 0) &&
-                        (conf.alarm[id].min < PREALARM_RUNNING_MIN)) {
-                        // Do not set PREALARM if ALARM time is < 00:20
-                        // PREALARM for these times is 23:40 - 23:59
-                    } else {
-                        if ((time->hour == 23) &&
-                            (time->min >= (60 - PREALARM_RUNNING_MIN))) {
-                            // Do not set PREALARM if current time is >= 23:40
-                        } else {
-                            uint8_t prealarm_hour, prealarm_min;
-
-                            calc_prealarm_time(conf.alarm[id].hour,
-                                               conf.alarm[id].min,
-                                               &prealarm_hour, &prealarm_min);
-                            rtc_wrapper_set_prealarm(prealarm_hour,
-                                                     prealarm_min);
-                        }
-                    }
                 } else {
-                    // Reset ALARM always
                     rtc_wrapper_reset_alarm();
+                }
 
-                    if ((time->hour == 23) &&
-                        (time->min >= (60 - PREALARM_RUNNING_MIN))) {
-                        // Do not reset PREALARM if current time is > 23:40,
-                        // because PREALARM for next day alarm should be
-                        // already set
-                    } else {
-                        rtc_wrapper_reset_prealarm();
-                    }
+                // Set PREALARM
+                if ((time->hour == 23) && (time->min >= (60 - PREALARM_RUNNING_MIN))) {
+                    prealarm_wday  = NEXT_WDAY(wday);
+                } else {
+                    prealarm_wday  = wday;
+                }
+
+                if (conf_alarm_is_on(prealarm_wday)) {
+                    uint8_t prealarm_hour, prealarm_min;
+
+                    calc_prealarm_time(prealarm_wday,
+                                       &prealarm_hour,
+                                       &prealarm_min);
+
+                    rtc_wrapper_set_prealarm(prealarm_hour,
+                                             prealarm_min);
+                } else {
+                    rtc_wrapper_reset_prealarm();
                 }
             }
 

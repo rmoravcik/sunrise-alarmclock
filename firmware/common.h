@@ -82,6 +82,7 @@ typedef struct {
 #define DISPLAY_ON		0x1000
 
 #define WDAY_TO_ID(x)		(x - 1)
+#define ID_TO_WDAY(x)		(x + 1)
 #define TO_PERIOD(x)		(120 * (uint16_t)x)
 #define SEC_TO_PERIOD(x)	(2 * (uint16_t)x)
 
