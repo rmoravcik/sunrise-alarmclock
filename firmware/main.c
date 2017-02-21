@@ -101,49 +101,49 @@ ISR(INT1_vect, ISR_NOBLOCK)
         press_counter++;
     }
 
-    // short press of snooze button
-    if (press_counter == 1) {
-        if (status & (PREALARM_RUNNING | ALARM_RUNNING)) {
-#ifdef DEBUG
-            if (debug & DEBUG_FSM) {
-                uartSendString("INT1_vect(): Reqest to stop PREALARM/ALARM\r\n");
-            }
-#endif
-            status |= ALARM_STOP_REQUEST;
-        } else {
-#ifdef DEBUG
-            if (debug & DEBUG_FSM) {
-                uartSendString("INT1_vect(): Display on\r\n");
-            }
-#endif
-            status |= DISPLAY_ON;
-        }
-    }
-
     // long press of snooze button
-    if (press_counter == 10) {
+    if (press_counter >= 10) {
         if ((status & (PREALARM_RUNNING | PREALARM_STOPPING |
                        ALARM_RUNNING | ALARM_STOPPING)) == 0) {
             if (status & NIGHT_LAMP_MODE) {
+                ssd1306_clear();
+                led_off();
+                status &= ~NIGHT_LAMP_MODE;
 #ifdef DEBUG
                 if (debug & DEBUG_FSM) {
                     uartSendString("INT1_vect(): Night lamp off\r\n");
                 }
 #endif
-                ssd1306_clear();
-                led_off();
-                status &= ~NIGHT_LAMP_MODE;
             } else {
-                if (!light_sensor_is_day()) {
+                if (light_sensor_is_dark()) {
+                    status |= NIGHT_LAMP_MODE;
+                    status &= ~DISPLAY_ON;
+                    led_night_lamp();
 #ifdef DEBUG
                     if (debug & DEBUG_FSM) {
                         uartSendString("INT1_vect(): Night lamp on\r\n");
                     }
 #endif
-                    status |= NIGHT_LAMP_MODE;
-                    status &= ~DISPLAY_ON;
-                    led_night_lamp();
                 }
+            }
+        }
+    } else {
+        // short press of snooze button
+        if (status & (PREALARM_RUNNING | ALARM_RUNNING)) {
+            status |= ALARM_STOP_REQUEST;
+#ifdef DEBUG
+            if (debug & DEBUG_FSM) {
+                uartSendString("INT1_vect(): Reqest to stop PREALARM/ALARM\r\n");
+            }
+#endif
+        } else {
+            if ((status & (DISPLAY_ON | NIGHT_LAMP_MODE)) == 0) {
+                status |= DISPLAY_ON;
+#ifdef DEBUG
+                if (debug & DEBUG_FSM) {
+                    uartSendString("INT1_vect(): Display on\r\n");
+                }
+#endif
             }
         }
     }
@@ -156,26 +156,27 @@ ISR(PCINT1_vect, ISR_NOBLOCK)
 
     time = rtc_wrapper_get_time();
 
+    // Check update of display every 500ms to speed up response to button press
+    if (status & (DISPLAY_ON | PREALARM_RUNNING | PREALARM_STOPPING |
+                  ALARM_RUNNING | ALARM_STOPPING | NIGHT_LAMP_MODE)) {
+        sprintf(buf, "%02d:%02d", time->hour, time->min);
+        ssd1306_string_font25x32xy(3, 0, buf);
+
+        display_period++;
+
+        if ((status & DISPLAY_ON) && (display_period > SEC_TO_PERIOD(DISPLAY_ON_SEC))) {
+            ssd1306_clear();
+            display_period = 0;
+            status &= ~DISPLAY_ON;
+        }
+    } else {
+        display_period = 0;
+    }
+
     // PC2 is pin change interrupt, so 1Hz SQW signal
     // from DS1307 is triggering this interrupt every 500ms
     if (sec != time->sec) {
         sec = time->sec;
-
-        if (status & (DISPLAY_ON | PREALARM_RUNNING | PREALARM_STOPPING |
-                                   ALARM_RUNNING | ALARM_STOPPING |
-                      NIGHT_LAMP_MODE)) {
-            sprintf(buf, "%02d:%02d", time->hour, time->min);
-            ssd1306_string_font25x32xy(3, 0, buf);
-
-            display_period++;
-
-            if ((status & DISPLAY_ON) && (display_period > DISPLAY_ON_SEC)) {
-                ssd1306_clear();
-                status &= ~DISPLAY_ON;
-            }
-        } else {
-            display_period = 0;
-        }
 
 #ifdef DEBUG
         if (debug & DEBUG_RTC) {
@@ -229,6 +230,7 @@ ISR(PCINT1_vect, ISR_NOBLOCK)
 #endif
                 // Start PREALARM
                 status |= PREALARM_RUNNING;
+                status &= ~DISPLAY_ON;
                 period = 0;
             }
         }
@@ -286,7 +288,7 @@ ISR(PCINT1_vect, ISR_NOBLOCK)
 
     if (status & PREALARM_RUNNING) {
         // Don't start sunrise simulation if it's dark outside
-        if (!light_sensor_is_day()) {
+        if (light_sensor_is_dark()) {
             led_sunrise(period);
         }
         period++;
