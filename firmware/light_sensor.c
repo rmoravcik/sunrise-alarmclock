@@ -17,21 +17,40 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef LED_H
-#define LED_H
+#include <stdio.h>
+#include <util/delay.h>
 
-void led_init(void);
+#include "ds_rtc_lib/library-gcc/test/uart.h"
 
-void led_sunrise(uint16_t period);
-void led_sunset(uint16_t period);
+#include "common.h"
+#include "light_sensor.h"
 
-void led_on(void);
-void led_off(void);
+void light_sensor_init(void)
+{
+    DDRC &= ~_BV(PC1);
+    ADMUX |= _BV(REFS0) | _BV(MUX0);
+    ADCSRA |= _BV(ADEN) | _BV(ADPS2) | _BV(ADPS1) | _BV(ADPS0);
+}
 
-void led_night_lamp(void);
+bool light_sensor_is_dark(void)
+{
+#ifdef DEBUG
+    char buf[60];
+#endif
+
+    ADCSRA |= _BV(ADSC);
+
+    while (ADCSRA & _BV(ADSC)) {
+    }
 
 #ifdef DEBUG
-void led_set(uint8_t red, uint8_t green, uint8_t blue);
+    if (debug & DEBUG_ADC) {
+        sprintf(buf, "light_sensor_is_dark: adc=%4u\r\n", ADCW);
+        uartSendString(buf);
+    }
 #endif
+    if (ADCW > 900)
+        return true;
 
-#endif
+    return false;
+}

@@ -34,6 +34,7 @@
 #include "audio.h"
 #include "command.h"
 #include "led.h"
+#include "light_sensor.h"
 #include "rtc_wrapper.h"
 
 #ifdef DEBUG
@@ -100,7 +101,7 @@ ISR(INT1_vect, ISR_NOBLOCK)
         press_counter++;
     }
 
-    // short press of func button
+    // short press of snooze button
     if (press_counter == 1) {
         if (status & (PREALARM_RUNNING | ALARM_RUNNING)) {
 #ifdef DEBUG
@@ -118,6 +119,34 @@ ISR(INT1_vect, ISR_NOBLOCK)
             status |= DISPLAY_ON;
         }
     }
+
+    // long press of snooze button
+    if (press_counter == 10) {
+        if ((status & (PREALARM_RUNNING | PREALARM_STOPPING |
+                       ALARM_RUNNING | ALARM_STOPPING)) == 0) {
+            if (status & NIGHT_LAMP_MODE) {
+#ifdef DEBUG
+                if (debug & DEBUG_FSM) {
+                    uartSendString("INT1_vect(): Night lamp off\r\n");
+                }
+#endif
+                ssd1306_clear();
+                led_off();
+                status &= ~NIGHT_LAMP_MODE;
+            } else {
+                if (!light_sensor_is_day()) {
+#ifdef DEBUG
+                    if (debug & DEBUG_FSM) {
+                        uartSendString("INT1_vect(): Night lamp on\r\n");
+                    }
+#endif
+                    status |= NIGHT_LAMP_MODE;
+                    status &= ~DISPLAY_ON;
+                    led_night_lamp();
+                }
+            }
+        }
+    }
 }
 
 ISR(PCINT1_vect, ISR_NOBLOCK)
@@ -133,7 +162,8 @@ ISR(PCINT1_vect, ISR_NOBLOCK)
         sec = time->sec;
 
         if (status & (DISPLAY_ON | PREALARM_RUNNING | PREALARM_STOPPING |
-                                   ALARM_RUNNING | ALARM_STOPPING)) {
+                                   ALARM_RUNNING | ALARM_STOPPING |
+                      NIGHT_LAMP_MODE)) {
             sprintf(buf, "%02d:%02d", time->hour, time->min);
             ssd1306_string_font25x32xy(3, 0, buf);
 
@@ -255,7 +285,10 @@ ISR(PCINT1_vect, ISR_NOBLOCK)
     }
 
     if (status & PREALARM_RUNNING) {
-        led_sunrise(period);
+        // Don't start sunrise simulation if it's dark outside
+        if (!light_sensor_is_day()) {
+            led_sunrise(period);
+        }
         period++;
     } else if (status & ALARM_RUNNING) {
         if (period >= (SEC_TO_PERIOD(ALARM_RUNNING_SEC))) {
@@ -275,7 +308,8 @@ ISR(PCINT1_vect, ISR_NOBLOCK)
                 audio_play_alarm();
             }
 
-            if (status & PREALARM_WAS_RUNNING) {
+            // Don't turn on led if prealarm was not running or night lamp is on
+            if ((status & PREALARM_WAS_RUNNING) && ((status & NIGHT_LAMP_MODE) == 0)) {
                 led_on();
             }
             period++;
@@ -293,7 +327,10 @@ ISR(PCINT1_vect, ISR_NOBLOCK)
             status &= ~PREALARM_STOPPING;
         }
 
-        led_sunset(period);
+        // Don't start sunset simulation if night lamp is on
+        if ((status & NIGHT_LAMP_MODE) == 0) {
+            led_sunset(period);
+        }
         period++;
     } else if (status & ALARM_STOPPING) {
         if (period >= (TO_PERIOD(ALARM_STOPPING_MIN))) {
@@ -306,7 +343,8 @@ ISR(PCINT1_vect, ISR_NOBLOCK)
             status &= ~(ALARM_STOPPING | PREALARM_WAS_RUNNING);
         }
 
-        if (status & PREALARM_WAS_RUNNING) {
+        // Don't start sunset simulation if prealarm was not running or night lamp is on
+        if ((status & PREALARM_WAS_RUNNING) && ((status & NIGHT_LAMP_MODE) == 0)) {
             led_sunset(period);
         }
         period++;
@@ -384,7 +422,7 @@ void alarm_init(void)
 int main(void)
 {
 #ifdef DEBUG
-    debug = DEBUG_RTC | DEBUG_LED | DEBUG_FSM | DEBUG_COMMAND;
+    debug = DEBUG_RTC | DEBUG_LED | DEBUG_FSM | DEBUG_COMMAND | DEBUG_ADC;
     char buf[50];
 #endif
 
@@ -410,6 +448,8 @@ int main(void)
     alarm_init();
 
     audio_init();
+
+    light_sensor_init();
 
     sei();
 

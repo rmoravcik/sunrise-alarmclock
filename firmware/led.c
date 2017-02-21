@@ -33,7 +33,9 @@
 #define SUNSET_FADEOUT_INTERVAL (20)
 #define SUNSET_INTERVAL (TO_PERIOD(PREALARM_STOPPING_MIN))
 
-static uint8_t red_max = 150;
+#define NIGHT_LAMP_INTENSITY 255
+
+static uint8_t red_max = 255;
 static uint8_t green_max = 150;
 static uint8_t blue_max = 150;
 
@@ -166,6 +168,19 @@ void led_off(void)
         leds[i].r = 0;
         leds[i].g = 0;
         leds[i].b = 0;
+    }
+
+    ws2812_setleds(leds, NUM_LEDS);
+}
+
+void led_night_lamp(void)
+{
+    uint8_t i = 0;
+
+    for (i = 0; i < NUM_LEDS; i++) {
+        leds[i].r = NIGHT_LAMP_INTENSITY;
+        leds[i].g = NIGHT_LAMP_INTENSITY;
+        leds[i].b = NIGHT_LAMP_INTENSITY;
     }
 
     ws2812_setleds(leds, NUM_LEDS);

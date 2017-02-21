@@ -17,21 +17,13 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef LED_H
-#define LED_H
+#ifndef LIGHT_SENSOR_H
+#define LIGHT_SENSOR_H
 
-void led_init(void);
+#include <stdbool.h>
 
-void led_sunrise(uint16_t period);
-void led_sunset(uint16_t period);
+void light_sensor_init(void);
 
-void led_on(void);
-void led_off(void);
-
-void led_night_lamp(void);
-
-#ifdef DEBUG
-void led_set(uint8_t red, uint8_t green, uint8_t blue);
-#endif
+bool light_sensor_is_dark(void);
 
 #endif

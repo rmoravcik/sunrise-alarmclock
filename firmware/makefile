@@ -33,6 +33,7 @@ SRC = main.c \
       audio.c \
       command.c \
       led.c \
+      light_sensor.c \
       rtc_wrapper.c \
       ds_rtc_lib/library-gcc/twi.c \
       ds_rtc_lib/library-gcc/twi-lowlevel.c \

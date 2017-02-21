@@ -32,6 +32,7 @@ extern uint8_t debug;
 #define DEBUG_COMMAND	0x02
 #define DEBUG_LED	0x04
 #define DEBUG_FSM	0x08
+#define DEBUG_ADC	0x10
 #endif
 
 #define ALARM_OFF_HOUR	99
@@ -80,6 +81,7 @@ typedef struct {
 #define ALARM_STOPPING		0x0400
 #define ALARM_STOP_REQUEST	0x0800
 #define DISPLAY_ON		0x1000
+#define NIGHT_LAMP_MODE		0x2000
 
 #define WDAY_TO_ID(x)		(x - 1)
 #define ID_TO_WDAY(x)		(x + 1)
