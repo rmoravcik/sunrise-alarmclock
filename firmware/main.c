@@ -276,6 +276,9 @@ ISR(PCINT1_vect, ISR_NOBLOCK)
         }
 
         if (status & PREALARM_RUNNING) {
+            // Disable ALARM because PREALARM was stopped
+            rtc_wrapper_reset_alarm();
+
             status &= ~(PREALARM_RUNNING | ALARM_STOP_REQUEST);
             status |= PREALARM_STOPPING;
             period = 0;
