@@ -106,9 +106,10 @@ ISR(INT1_vect, ISR_NOBLOCK)
         if ((status & (PREALARM_RUNNING | PREALARM_STOPPING |
                        ALARM_RUNNING | ALARM_STOPPING)) == 0) {
             if (status & NIGHT_LAMP_MODE) {
-                ssd1306_clear();
                 led_off();
                 status &= ~NIGHT_LAMP_MODE;
+                status |= DISPLAY_ON;
+                display_period = 0;
 #ifdef DEBUG
                 if (debug & DEBUG_FSM) {
                     uartSendString("INT1_vect(): Night lamp off\r\n");
@@ -127,9 +128,9 @@ ISR(INT1_vect, ISR_NOBLOCK)
                 }
             }
         }
-    } else {
+    } else if (press_counter >= 1) {
         // short press of snooze button
-        if (status & (PREALARM_RUNNING | ALARM_RUNNING)) {
+        if (status & (PREALARM_RUNNING | ALARM_RUNNING | ALARM_TIMEOUT)) {
             status |= ALARM_STOP_REQUEST;
 #ifdef DEBUG
             if (debug & DEBUG_FSM) {
@@ -139,6 +140,7 @@ ISR(INT1_vect, ISR_NOBLOCK)
         } else {
             if ((status & (DISPLAY_ON | NIGHT_LAMP_MODE)) == 0) {
                 status |= DISPLAY_ON;
+                display_period = 0;
 #ifdef DEBUG
                 if (debug & DEBUG_FSM) {
                     uartSendString("INT1_vect(): Display on\r\n");
@@ -223,15 +225,23 @@ ISR(PCINT1_vect, ISR_NOBLOCK)
 #endif
                 // There is an ALARM already running, do nothing
             } else {
+                if (light_sensor_is_dark()) {
 #ifdef DEBUG
-                if (debug & DEBUG_FSM) {
-                    uartSendString("PCINT1_vect(): Starting PREALARM\r\n");
-                }
+                    if (debug & DEBUG_FSM) {
+                        uartSendString("PCINT1_vect(): Starting PREALARM\r\n");
+                    }
 #endif
-                // Start PREALARM
-                status |= PREALARM_RUNNING;
-                status &= ~DISPLAY_ON;
-                period = 0;
+                    // Start PREALARM
+                    status |= PREALARM_RUNNING;
+                    status &= ~DISPLAY_ON;
+                    period = 0;
+                } else {
+#ifdef DEBUG
+                    if (debug & DEBUG_FSM) {
+                        uartSendString("PCINT1_vect(): Not starting PREALARM\r\n");
+                    }
+#endif
+                }
             }
         }
 
@@ -286,14 +296,15 @@ ISR(PCINT1_vect, ISR_NOBLOCK)
             status &= ~(ALARM_RUNNING | ALARM_STOP_REQUEST);
             status |= ALARM_STOPPING;
             period = 0;
+        } else if (status & ALARM_TIMEOUT) {
+            status &= ~(ALARM_TIMEOUT | ALARM_STOP_REQUEST);
+            status |= ALARM_STOPPING;
+            period = 0;
         }
     }
 
     if (status & PREALARM_RUNNING) {
-        // Don't start sunrise simulation if it's dark outside
-        if (light_sensor_is_dark()) {
-            led_sunrise(period);
-        }
+        led_sunrise(period);
         period++;
     } else if (status & ALARM_RUNNING) {
         if (period >= (SEC_TO_PERIOD(ALARM_RUNNING_SEC))) {
@@ -304,7 +315,7 @@ ISR(PCINT1_vect, ISR_NOBLOCK)
 #endif
             // Timeout, ALARM was not stopped
             status &= ~ALARM_RUNNING;
-            status |= ALARM_STOPPING;
+            status |= ALARM_TIMEOUT;
             period = 0;
         } else {
             if (period == SEC_TO_PERIOD(ALARM_RUNNING_SEC / 2)) {
@@ -322,7 +333,7 @@ ISR(PCINT1_vect, ISR_NOBLOCK)
     }
 
     if (status & PREALARM_STOPPING) {
-        if (period >= (TO_PERIOD(PREALARM_STOPPING_MIN))) {
+        if (period >= (SEC_TO_PERIOD(PREALARM_STOPPING_SEC))) {
 #ifdef DEBUG
             if (debug & DEBUG_FSM) {
                 uartSendString("PCINT1_vect(): PREALARM stopped\r\n");
@@ -334,11 +345,11 @@ ISR(PCINT1_vect, ISR_NOBLOCK)
 
         // Don't start sunset simulation if night lamp is on
         if ((status & NIGHT_LAMP_MODE) == 0) {
-            led_sunset(period);
+            led_off();
         }
         period++;
     } else if (status & ALARM_STOPPING) {
-        if (period >= (TO_PERIOD(ALARM_STOPPING_MIN))) {
+        if (period >= (SEC_TO_PERIOD(ALARM_STOPPING_SEC))) {
 #ifdef DEBUG
             if (debug & DEBUG_FSM) {
                 uartSendString("PCINT1_vect(): ALARM stopped\r\n");
@@ -346,6 +357,22 @@ ISR(PCINT1_vect, ISR_NOBLOCK)
 #endif
             ssd1306_clear();
             status &= ~(ALARM_STOPPING | PREALARM_WAS_RUNNING);
+        }
+
+        // Don't start sunset simulation if prealarm was not running or night lamp is on
+        if ((status & PREALARM_WAS_RUNNING) && ((status & NIGHT_LAMP_MODE) == 0)) {
+            led_off();
+        }
+        period++;
+    } else if (status & ALARM_TIMEOUT) {
+        if (period >= (TO_PERIOD(ALARM_TIMEOUT_MIN))) {
+#ifdef DEBUG
+            if (debug & DEBUG_FSM) {
+                uartSendString("PCINT1_vect(): ALARM timeout stopped\r\n");
+            }
+#endif
+            ssd1306_clear();
+            status &= ~(ALARM_TIMEOUT | PREALARM_WAS_RUNNING);
         }
 
         // Don't start sunset simulation if prealarm was not running or night lamp is on
