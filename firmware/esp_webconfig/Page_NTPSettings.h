@@ -1,4 +1,3 @@
-
 const char PAGE_NTPConfiguration[] PROGMEM = R"=====(
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
@@ -51,7 +50,6 @@ const char PAGE_NTPConfiguration[] PROGMEM = R"=====(
 </table>
 </form>
 <script>
-	
 
 window.onload = function ()
 {
@@ -63,50 +61,43 @@ window.onload = function ()
 		});
 	});
 }
+
 function load(e,t,n){if("js"==t){var a=document.createElement("script");a.src=e,a.type="text/javascript",a.async=!1,a.onload=function(){n()},document.getElementsByTagName("head")[0].appendChild(a)}else if("css"==t){var a=document.createElement("link");a.href=e,a.rel="stylesheet",a.type="text/css",a.async=!1,a.onload=function(){n()},document.getElementsByTagName("head")[0].appendChild(a)}}
-
-
 
 </script>
 )=====";
 
-
 void send_NTP_configuration_html()
 {
-	
-	 
-	if (server.args() > 0 )  // Save Settings
+	if (server.args() > 0)	// Save Settings
 	{
 		config.daylight = false;
 		String temp = "";
-		for ( uint8_t i = 0; i < server.args(); i++ ) {
-			if (server.argName(i) == "ntpserver") config.ntpServerName = urldecode( server.arg(i)); 
-			if (server.argName(i) == "update") config.Update_Time_Via_NTP_Every =  server.arg(i).toInt(); 
-			if (server.argName(i) == "tz") config.timezone =  server.arg(i).toInt(); 
-			if (server.argName(i) == "dst") config.daylight = true; 
+		for (uint8_t i = 0; i < server.args(); i++) {
+			if (server.argName(i) == "ntpserver")
+				config.ntpServerName = urldecode(server.arg(i));
+			if (server.argName(i) == "update")
+				config.ntpUpdateTime = server.arg(i).toInt();
+			if (server.argName(i) == "tz")
+				config.timezone = server.arg(i).toInt();
+			if (server.argName(i) == "dst")
+				config.daylight = true;
 		}
 		WriteConfig();
 		firstStart = true;
 	}
-	server.send ( 200, "text/html", PAGE_NTPConfiguration ); 
-	Serial.println(__FUNCTION__); 
-	
+	server.send(200, "text/html", reinterpret_cast<const __FlashStringHelper *>(PAGE_NTPConfiguration));
+	Serial.println(__FUNCTION__);
 }
-
-
-
-
-
 
 void send_NTP_configuration_values_html()
 {
-		
-	String values ="";
+	String values = "";
 	values += "ntpserver|" + (String) config.ntpServerName + "|input\n";
-	values += "update|" +  (String) config.Update_Time_Via_NTP_Every + "|input\n";
-	values += "tz|" +  (String) config.timezone + "|input\n";
-	values += "dst|" +  (String) (config.daylight ? "checked" : "") + "|chk\n";
-	server.send ( 200, "text/plain", values);
-	Serial.println(__FUNCTION__); 
-	
+	values += "update|" + (String) config.ntpUpdateTime + "|input\n";
+	values += "tz|" + (String) config.timezone + "|input\n";
+	values +=
+	    "dst|" + (String) (config.daylight ? "checked" : "") + "|chk\n";
+	server.send(200, "text/plain", values);
+	Serial.println(__FUNCTION__);
 }
