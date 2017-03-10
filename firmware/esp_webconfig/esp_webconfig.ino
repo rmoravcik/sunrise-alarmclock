@@ -40,7 +40,7 @@
 Include the HTML, STYLE and Script "Pages"
 */
 #include "Page_Root.h"
-#include "Page_Admin.h"
+#include "Page_Configuration.h"
 #include "Page_Script.js.h"
 #include "Page_Style.css.h"
 #include "Page_NTPSettings.h"
@@ -99,9 +99,9 @@ void setup(void)
 
 	server.on("/", send_root_html);
 
-	server.on("/admin.html", []() {
-		  Serial.println("admin.html");
-		  server.send (200, "text/html", reinterpret_cast<const __FlashStringHelper *>(PAGE_AdminMainPage));}
+	server.on("/config.html", []() {
+		  Serial.println("config.html");
+		  server.send (200, "text/html", reinterpret_cast<const __FlashStringHelper *>(PAGE_ConfigurationPage));}
 	);
 
 	server.on("/config.html", send_network_configuration_html);
