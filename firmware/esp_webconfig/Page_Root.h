@@ -9,7 +9,7 @@ const char PAGE_root[] PROGMEM = R"=====(
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 	<link rel="stylesheet" href="style.css" type="text/css" />
 	<script src="microajax.js"></script>
-	&nbsp;&nbsp;<strong>Sunrise Alarm</strong><a href="config.html" class="btn btn--s right">⋮</a>
+	<a href="config.html" style="width:20px; text-align:center" class="btn btn--s">⋮</a>&nbsp;&nbsp;<strong>Sunrise Alarm</strong>
 	<hr>
 	<form action="" method="get">
 	<table border="0" cellspacing="0" cellpadding="3" style="width:310px">
@@ -48,6 +48,9 @@ const char PAGE_root[] PROGMEM = R"=====(
 				<td><input type="time" id="day7" name="day7" value="00:00"></td>
 				<td><input type="checkbox" id="day7_enable" name="day7_enable"></td>
 			</tr>
+      <tr>
+        <td colspan="2" align="center"><input type="submit" style="width:150px" class="btn btn--m btn--blue" value="Save"></td>
+      </tr>
 		</table>
 	</form>
 

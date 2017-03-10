@@ -1,7 +1,7 @@
 const char PAGE_NTPConfiguration[] PROGMEM = R"=====(
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<a href="admin.html"  class="btn btn--s"><</a>&nbsp;&nbsp;<strong>NTP Settings</strong>
+<a href="config.html" style="width:20px; text-align:center" class="btn btn--s"><</a>&nbsp;&nbsp;<strong>NTP Settings</strong>
 <hr>
 <form action="" method="get">
 <table border="0"  cellspacing="0" cellpadding="3" >

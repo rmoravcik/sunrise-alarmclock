@@ -6,11 +6,11 @@
 //
 const char PAGE_ConfigurationPage[] PROGMEM = R"=====(
 	<meta name="viewport" content="width=device-width, initial-scale=1" />
-	<a href="/" class="btn btn--s"><</a>&nbsp;&nbsp;<strong>Configuration</strong>
+	<a href="/" style="width:20px; text-align:center" class="btn btn--s"><</a>&nbsp;&nbsp;<strong>Configuration</strong>
 	<hr>
-	<a href="config.html" style="width:250px" class="btn btn--m btn--blue" >Network Configuration</a><br>
-	<a href="info.html" style="width:250px" class="btn btn--m btn--blue" >Network Information</a><br>
-	<a href="ntp.html" style="width:250px" class="btn btn--m btn--blue" >NTP Settings</a><br>
+	<a href="network.html" style="width:250px" class="btn btn--m btn--blue">Network Configuration</a><br>
+	<a href="info.html" style="width:250px" class="btn btn--m btn--blue">Network Information</a><br>
+	<a href="ntp.html" style="width:250px" class="btn btn--m btn--blue">NTP Settings</a><br>
 
 	<script>
 		window.onload = function ()

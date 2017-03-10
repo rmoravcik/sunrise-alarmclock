@@ -104,7 +104,7 @@ void setup(void)
 		  server.send (200, "text/html", reinterpret_cast<const __FlashStringHelper *>(PAGE_ConfigurationPage));}
 	);
 
-	server.on("/config.html", send_network_configuration_html);
+	server.on("/network.html", send_network_configuration_html);
 
 	server.on("/info.html",[]() {
 		  Serial.println("info.html");
@@ -124,7 +124,7 @@ void setup(void)
 
 	server.on("/admin/rootvalues", send_root_values_html);
 
-	server.on("/admin/values", send_network_configuration_values_html);
+	server.on("/admin/networkvalues", send_network_configuration_values_html);
 
 	server.on("/admin/connectionstate", send_connection_state_values_html);
 

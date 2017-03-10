@@ -9,7 +9,7 @@ const char PAGE_Information[] PROGMEM = R"=====(
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <link rel="stylesheet" href="style.css" type="text/css" />
 <script src="microajax.js"></script> 
-<a href="admin.html"  class="btn btn--s"><</a>&nbsp;&nbsp;<strong>Network Information</strong>
+<a href="config.html" style="width:20px; text-align:center" class="btn btn--s"><</a>&nbsp;&nbsp;<strong>Network Information</strong>
 <hr>
 <table border="0"  cellspacing="0" cellpadding="3" style="width:310px" >
 <tr><td align="right">SSID :</td><td><span id="x_ssid"></span></td></tr>

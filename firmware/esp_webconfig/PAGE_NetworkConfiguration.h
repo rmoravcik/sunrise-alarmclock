@@ -4,7 +4,7 @@
 const char PAGE_NetworkConfiguration[] PROGMEM = R"=====(
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<a href="admin.html"  class="btn btn--s"><</a>&nbsp;&nbsp;<strong>Network Configuration</strong>
+<a href="config.html" style="width:20px; text-align:center" class="btn btn--s"><</a>&nbsp;&nbsp;<strong>Network Configuration</strong>
 <hr>
 Connect to Router with these settings:<br>
 <form action="" method="get">
@@ -44,7 +44,7 @@ window.onload = function ()
 	{
 		load("microajax.js","js", function() 
 		{
-					setValues("/admin/values");
+					setValues("/admin/networkvalues");
 					setTimeout(GetState,3000);
 		});
 	});
