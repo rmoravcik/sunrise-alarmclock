@@ -59,8 +59,8 @@ void rtc_wrapper_reset_prealarm(void)
     }
 #endif
 
-    rtc_set_sram_byte(0, 0); // hour
-    rtc_set_sram_byte(0, 1); // minute
+    rtc_set_sram_byte(ALARM_OFF_HOUR, 0); // hour
+    rtc_set_sram_byte(ALARM_OFF_MIN, 1); // minute
 }
 
 void rtc_wrapper_set_prealarm(uint8_t hour, uint8_t min)
@@ -108,8 +108,8 @@ void rtc_wrapper_reset_alarm(void)
     }
 #endif
 
-    rtc_set_sram_byte(0, 2); // hour
-    rtc_set_sram_byte(0, 3); // minute
+    rtc_set_sram_byte(ALARM_OFF_HOUR, 2); // hour
+    rtc_set_sram_byte(ALARM_OFF_MIN, 3); // minute
 }
 
 void rtc_wrapper_set_alarm(uint8_t hour, uint8_t min)

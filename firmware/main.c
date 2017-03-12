@@ -96,7 +96,7 @@ ISR(INT1_vect, ISR_NOBLOCK)
 {
     uint8_t press_counter = 0;
 
-    while (!(PIND & _BV(PD3)) && press_counter < 10) {
+    while ((PIND & _BV(PD3)) && press_counter < 10) {
         _delay_ms(200);
         press_counter++;
     }
@@ -274,7 +274,7 @@ ISR(PCINT1_vect, ISR_NOBLOCK)
                 period = 0;
 
                 // Start playback
-                audio_set_volume(AUDIO_VOLUME_5);
+                audio_set_volume(AUDIO_VOLUME_4);
                 audio_play_alarm();
             }
         }
@@ -320,7 +320,7 @@ ISR(PCINT1_vect, ISR_NOBLOCK)
         } else {
             if (period == SEC_TO_PERIOD(ALARM_RUNNING_SEC / 2)) {
                 // Start playback again
-                audio_set_volume(AUDIO_VOLUME_6);
+                audio_set_volume(AUDIO_VOLUME_5);
                 audio_play_alarm();
             }
 
@@ -386,9 +386,8 @@ ISR(PCINT1_vect, ISR_NOBLOCK)
 void snooze_irq_init(void)
 {
     DDRD &= ~_BV(PD3);
-    PORTD |= _BV(PD3);
 
-    EICRA |= _BV(ISC11);
+    EICRA |= _BV(ISC11) | _BV(ISC10);
     EIMSK |= _BV(INT1);
 }
 
