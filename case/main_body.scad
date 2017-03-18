@@ -21,20 +21,26 @@ module main_body_cuts(){
 
     // display hole
     translate([case_width/2,wall_thickness/2,display_height]) cube([25,wall_thickness,9.4],center=true);
+
+    // touch sensor hole
+    translate([case_width/2,2,20]) cube([25,1,25],center=true);
+
+    // touch sensor hole
+    translate([case_width/2,case_length-wall_thickness/2,2*wall_thickness]) cube([4,wall_thickness,2.8],center=true);
 };
 
 module drzak_base(){
-    translate([-2,-2,wall_thickness]) rounded_cube(16,16,15,5);
-    translate([case_width-16+2,-2,wall_thickness]) rounded_cube(16,16,15,5);
-    translate([-2,case_length-16+2,wall_thickness]) rounded_cube(16,16,15,5);
-    translate([case_width-16+2,case_length-16+2,wall_thickness]) rounded_cube(16,16,15,5);
+    translate([-2,-2,wall_thickness+0.3]) rounded_cube(16,16,15,5);
+    translate([case_width-16+2,-2,wall_thickness+0.3]) rounded_cube(16,16,15,5);
+    translate([-2,case_length-16+2,wall_thickness+0.3]) rounded_cube(16,16,15,5);
+    translate([case_width-16+2,case_length-16+2,wall_thickness+0.3]) rounded_cube(16,16,15,5);
     };
 
 module drzak_cuts(){
-    color([1,0,0]) translate([6+wall_thickness,6+wall_thickness,wall_thickness]) cylinder(r=1.25,h=10,$fn=32);
-    color([1,0,0]) translate([6+wall_thickness,case_width-wall_thickness-6,0]) cylinder(r=1.25,h=10,$fn=32);
-    color([1,0,0]) translate([case_width-wall_thickness-6,6+wall_thickness,0]) cylinder(r=1.25,h=10,$fn=32);
-    color([1,0,0]) translate([case_width-wall_thickness-6,case_width-wall_thickness-6,0]) cylinder(r=1.25,h=10,$fn=32);
+    color([1,0,0]) translate([6+wall_thickness,6+wall_thickness,wall_thickness+0.3]) cylinder(r=1.25,h=10,$fn=32);
+    color([1,0,0]) translate([6+wall_thickness,case_width-wall_thickness-6,wall_thickness+0.3]) cylinder(r=1.25,h=10,$fn=32);
+    color([1,0,0]) translate([case_width-wall_thickness-6,6+wall_thickness,wall_thickness+0.3]) cylinder(r=1.25,h=10,$fn=32);
+    color([1,0,0]) translate([case_width-wall_thickness-6,case_width-wall_thickness-6,wall_thickness+0.3]) cylinder(r=1.25,h=10,$fn=32);
 };
 
 module main_body(){

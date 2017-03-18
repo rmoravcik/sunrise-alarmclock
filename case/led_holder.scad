@@ -15,6 +15,10 @@ module led_holder_cuts(){
 
     translate([(width)/2-3.4/2,10,0]) cylinder(r=1/2,h=wall_thickness,$fn=32);
     translate([(width)/2+3.4/2,10,0]) cylinder(r=1/2,h=wall_thickness,$fn=32);
+    
+    translate([(width)/2,10,0]) cylinder(r=6.4/2,h=wall_thickness/2,$fn=32);
+
+    translate([(width)/2,(length)/2,0]) cylinder(r=24.5/2,h=wall_thickness/2,$fn=32);
 };
 
 module led_holder(){
