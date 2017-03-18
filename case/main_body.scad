@@ -29,14 +29,14 @@ module main_body_cuts(){
     translate([case_width/2,case_length-wall_thickness/2,2*wall_thickness]) cube([4,wall_thickness,2.8],center=true);
 };
 
-module drzak_base(){
+module mounting_base(){
     translate([-2,-2,wall_thickness+0.3]) rounded_cube(16,16,15,5);
     translate([case_width-16+2,-2,wall_thickness+0.3]) rounded_cube(16,16,15,5);
     translate([-2,case_length-16+2,wall_thickness+0.3]) rounded_cube(16,16,15,5);
     translate([case_width-16+2,case_length-16+2,wall_thickness+0.3]) rounded_cube(16,16,15,5);
     };
 
-module drzak_cuts(){
+module mounting_cuts(){
     color([1,0,0]) translate([6+wall_thickness,6+wall_thickness,wall_thickness+0.3]) cylinder(r=1.25,h=10,$fn=32);
     color([1,0,0]) translate([6+wall_thickness,case_width-wall_thickness-6,wall_thickness+0.3]) cylinder(r=1.25,h=10,$fn=32);
     color([1,0,0]) translate([case_width-wall_thickness-6,6+wall_thickness,wall_thickness+0.3]) cylinder(r=1.25,h=10,$fn=32);
@@ -52,9 +52,9 @@ module main_body(){
     difference() {
         intersection(){
             translate([wall_thickness,wall_thickness,wall_thickness]) rounded_cube(case_width-2*wall_thickness,case_length-2*wall_thickness,15,8);
-            drzak_base();
+            mounting_base();
         }
-        drzak_cuts();
+        mounting_cuts();
     }
 
     translate([(case_width-38)/2,wall_thickness,display_height+(9.4/2)]) cube([38,3,2]);
