@@ -5,12 +5,27 @@
 //  HTML PAGE
 //
 const char PAGE_ConfigurationPage[] PROGMEM = R"=====(
-	<meta name="viewport" content="width=device-width, initial-scale=1" />
-	<a href="/" style="width:20px; text-align:center" class="btn btn--s"><</a>&nbsp;&nbsp;<strong>Configuration</strong>
-	<hr>
-	<a href="network.html" style="width:250px" class="btn btn--m btn--blue">Network Configuration</a><br>
-	<a href="info.html" style="width:250px" class="btn btn--m btn--blue">Network Information</a><br>
-	<a href="ntp.html" style="width:250px" class="btn btn--m btn--blue">NTP Settings</a><br>
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no"/>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <link rel="stylesheet" href="style.css" type="text/css" />
+  <script src="microajax.js"></script>
+
+  <div id="menu">
+    &nbsp;<a href="/" style="width:25px; text-align:center;font-weight:bold" class="btn"><</a>&nbsp;&nbsp;<strong>Nastavení</strong>
+  </div
+  <br><br>
+
+  <table border="0" style="width:310px" class="center">
+    <tr>
+      <td colspan="1" align="center"><a href="network.html" style="width:250px;text-align:center;" class="btn btn--m btn--green">Nastavení síťe</a></td>
+    </tr>
+    <tr>
+      <td colspan="1" align="center"><a href="info.html" style="width:250px;text-align:center;" class="btn btn--m btn--green">Informace o síti</a></td>
+    </tr>
+    <tr>
+      <td colspan="1" align="center"><a href="ntp.html" style="width:250px" class="btn btn--m btn--green">Nastavení synchronizace času</a></td>
+    </tr>
+  </table>
 
 	<script>
 		window.onload = function ()

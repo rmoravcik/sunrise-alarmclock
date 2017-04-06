@@ -1,96 +1,80 @@
-/*
-  ESP_WebConfig 
-
-  Copyright (c) 2015 John Lassen. All rights reserved.
-  This is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public
-  License as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
-  This software is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
-  You should have received a copy of the GNU Lesser General Public
-  License along with this library; if not, write to the Free Software
-  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-
-  Latest version: 1.1.3  - 2015-07-20
-  Changed the loading of the Javascript and CCS Files, so that they will successively loaded and that only one request goes to the ESP.
-
-  -----------------------------------------------------------------------------------------------
-  History
-
-  Version: 1.1.2  - 2015-07-17
-  Added URLDECODE for some input-fields (SSID, PASSWORD...)
-
-  Version  1.1.1 - 2015-07-12
-  First initial version to the public
-
-  */
-
 #include <ESP8266WiFi.h>
+#include <ESP8266mDNS.h>
 #include <WiFiClient.h>
-#include <ESP8266WebServer.h>
 #include <Ticker.h>
 #include <EEPROM.h>
 #include <WiFiUdp.h>
 #include "helpers.h"
-#include "global.h"
-/*
-Include the HTML, STYLE and Script "Pages"
-*/
+
 #include "Page_Root.h"
 #include "Page_Configuration.h"
 #include "Page_Script.js.h"
 #include "Page_Style.css.h"
 #include "Page_NTPSettings.h"
 #include "Page_Information.h"
-#include "PAGE_NetworkConfiguration.h"
+#include "Page_NetworkConfiguration.h"
 
-#define DEFAULT_SSID "Sunrise Clock"
-#define DEFAULT_PASSWORD "12345678"
+#include "config.h"
+#include "common.h"
 
-#define AdminTimeOut 180	// Defines the Time in Seconds, when the Admin-Mode will be diabled
+ESP8266WebServer server(80);
+DNSServer dns;
+Ticker tkSecond;
+
+bool mDNSResponse = false;
+
+void Tick()
+{
+  if (!configMode) {
+    if (WiFi.status() != WL_CONNECTED) {
+      connectionTimeout++;
+      mDNSResponse = false;
+    } else {
+      if (mDNSResponse == false) {
+        Serial.println(WiFi.localIP());
+        MDNS.begin("sunrisealarm");
+        mDNSResponse = true;
+      }
+
+      connectionTimeout = 0;
+    }
+
+    if (connectionTimeout > 30) {
+      ConfigureConfigMode();
+    }
+  }
+
+#if 0
+  strDateTime tempDateTime;
+  AdminTimeOutCounter++;
+  cNTP_Update++;
+  UnixTimestamp++;
+
+  ConvertUnixTimeStamp(UnixTimestamp + (config.timezone * 360), &tempDateTime);
+
+  if (config.daylight)
+    if (summertime(tempDateTime.year, tempDateTime.month, tempDateTime.day, tempDateTime.hour, 0)) {
+      ConvertUnixTimeStamp(UnixTimestamp + (config.timezone * 360) + 3600, &DateTime);
+    } else {
+      DateTime = tempDateTime;
+  } else {
+    DateTime = tempDateTime;
+  }
+#endif
+}
 
 void setup(void)
 {
 	EEPROM.begin(512);
 	Serial.begin(115200);
 	delay(500);
-	Serial.println("Starting ES8266");
+
 	if (!ReadConfig()) {
-		// DEFAULT CONFIG
-		config.ssid = DEFAULT_SSID;
-		config.password = DEFAULT_PASSWORD;
-		config.dhcp = true;
-		config.ip[0] = 192;
-		config.ip[1] = 168;
-		config.ip[2] = 1;
-		config.ip[3] = 100;
-		config.netmask[0] = 255;
-		config.netmask[1] = 255;
-		config.netmask[2] = 255;
-		config.netmask[3] = 0;
-		config.gateway[0] = 192;
-		config.gateway[1] = 168;
-		config.gateway[2] = 1;
-		config.gateway[3] = 1;
-		config.ntpServerName = "0.de.pool.ntp.org";
-		config.ntpUpdateTime = 0;
-		config.timezone = -10;
-		config.daylight = true;
-		WriteConfig();
-		Serial.println("General config applied");
-	}
-
-	if (AdminEnabled) {
-		WiFi.mode(WIFI_AP_STA);
-		WiFi.softAP(DEFAULT_SSID, DEFAULT_PASSWORD);
-	} else {
-		WiFi.mode(WIFI_STA);
-	}
-
-	ConfigureWifi();
+		WriteDefaultConfig();
+  	ConfigureConfigMode();
+  } else {
+  	ConfigureNetwork();
+  }
 
 	server.on("/favicon.ico",[]() {
 		  Serial.println("favicon.ico");
@@ -98,6 +82,11 @@ void setup(void)
 	);
 
 	server.on("/", send_root_html);
+
+  server.on("/generate_204", []() {
+      Serial.println("config.html");
+      server.send (200, "text/html", reinterpret_cast<const __FlashStringHelper *>(PAGE_ConfigurationPage));}
+  );
 
 	server.on("/config.html", []() {
 		  Serial.println("config.html");
@@ -138,45 +127,16 @@ void setup(void)
 	);
 
 	server.begin();
-	Serial.println("HTTP server started");
-	tkSecond.attach(1, Second_Tick);
-	UDPNTPClient.begin(2390);	// Port for NTP receive
+
+	tkSecond.attach(1, Tick);
+//	UDPNTPClient.begin(2390);
 }
 
 void loop(void)
 {
-	if (AdminEnabled) {
-		if (AdminTimeOutCounter > AdminTimeOut) {
-			AdminEnabled = false;
-			Serial.println("Admin Mode disabled!");
-			WiFi.mode(WIFI_STA);
-		}
-	}
-	if (config.ntpUpdateTime > 0) {
-		if (cNTP_Update > 5 && firstStart) {
-			NTPRefresh();
-			cNTP_Update = 0;
-			firstStart = false;
-		} else if (cNTP_Update > (config.ntpUpdateTime * 60)) {
+  if (configMode) {
+    dns.processNextRequest();
+  }
 
-			NTPRefresh();
-			cNTP_Update = 0;
-		}
-	}
-
-	if (DateTime.minute != Minute_Old) {
-		Minute_Old = DateTime.minute;
-	}
 	server.handleClient();
-
-	/*
-	 *    Your Code here
-	 */
-
-	if (Refresh) {
-		Refresh = false;
-		///Serial.println("Refreshing...");
-		//Serial.printf("FreeMem:%d %d:%d:%d %d.%d.%d \n",ESP.getFreeHeap() , DateTime.hour,DateTime.minute, DateTime.second, DateTime.year, DateTime.month, DateTime.day);
-	}
-
 }

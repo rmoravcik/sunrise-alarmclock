@@ -1,3 +1,10 @@
+#ifndef PAGE_NETWORKCONFIGURATION
+#define PAGE_NETWORKCONFIGURATION
+
+#include "config.h"
+
+#include "common.h"
+
 //
 //  HTML PAGE
 //
@@ -70,24 +77,24 @@ void send_network_configuration_html()
 	if (server.args() > 0)	// Save Settings
 	{
 		String temp = "";
-		config.dhcp = false;
+		config.dhcpEnabled = false;
 		for (uint8_t i = 0; i < server.args(); i++) {
 			if (server.argName(i) == "ssid")
-				config.ssid = urldecode(server.arg(i));
+			  config.ssid = urlDecode(server.arg(i));
 			if (server.argName(i) == "password")
-				config.password = urldecode(server.arg(i));
+				config.password = urlDecode(server.arg(i));
 			if (server.argName(i) == "ip_0")
 				if (checkRange(server.arg(i)))
-					config.ip[0] = server.arg(i).toInt();
+					config.ipAddress[0] = server.arg(i).toInt();
 			if (server.argName(i) == "ip_1")
 				if (checkRange(server.arg(i)))
-					config.ip[1] = server.arg(i).toInt();
+					config.ipAddress[1] = server.arg(i).toInt();
 			if (server.argName(i) == "ip_2")
 				if (checkRange(server.arg(i)))
-					config.ip[2] = server.arg(i).toInt();
+					config.ipAddress[2] = server.arg(i).toInt();
 			if (server.argName(i) == "ip_3")
 				if (checkRange(server.arg(i)))
-					config.ip[3] = server.arg(i).toInt();
+					config.ipAddress[3] = server.arg(i).toInt();
 			if (server.argName(i) == "nm_0")
 				if (checkRange(server.arg(i)))
 					config.netmask[0] =
@@ -121,12 +128,11 @@ void send_network_configuration_html()
 					config.gateway[3] =
 					    server.arg(i).toInt();
 			if (server.argName(i) == "dhcp")
-				config.dhcp = true;
+				config.dhcpEnabled = true;
 		}
 		server.send(200, "text/html", reinterpret_cast<const __FlashStringHelper *>(PAGE_WaitAndReload));
 		WriteConfig();
-		ConfigureWifi();
-		AdminTimeOutCounter = 0;
+		ConfigureNetwork();
 	} else {
 		server.send(200, "text/html", reinterpret_cast<const __FlashStringHelper *>(PAGE_NetworkConfiguration));
 	}
@@ -142,10 +148,10 @@ void send_network_configuration_values_html()
 
 	values += "ssid|" + (String) config.ssid + "|input\n";
 	values += "password|" + (String) config.password + "|input\n";
-	values += "ip_0|" + (String) config.ip[0] + "|input\n";
-	values += "ip_1|" + (String) config.ip[1] + "|input\n";
-	values += "ip_2|" + (String) config.ip[2] + "|input\n";
-	values += "ip_3|" + (String) config.ip[3] + "|input\n";
+	values += "ip_0|" + (String) config.ipAddress[0] + "|input\n";
+	values += "ip_1|" + (String) config.ipAddress[1] + "|input\n";
+	values += "ip_2|" + (String) config.ipAddress[2] + "|input\n";
+	values += "ip_3|" + (String) config.ipAddress[3] + "|input\n";
 	values += "nm_0|" + (String) config.netmask[0] + "|input\n";
 	values += "nm_1|" + (String) config.netmask[1] + "|input\n";
 	values += "nm_2|" + (String) config.netmask[2] + "|input\n";
@@ -154,7 +160,7 @@ void send_network_configuration_values_html()
 	values += "gw_1|" + (String) config.gateway[1] + "|input\n";
 	values += "gw_2|" + (String) config.gateway[2] + "|input\n";
 	values += "gw_3|" + (String) config.gateway[3] + "|input\n";
-	values += "dhcp|" + (String) (config.dhcp ? "checked" : "") + "|chk\n";
+	values += "dhcp|" + (String) (config.dhcpEnabled ? "checked" : "") + "|chk\n";
 	server.send(200, "text/plain", values);
 	Serial.println(__FUNCTION__);
 }
@@ -218,3 +224,6 @@ void send_connection_state_values_html()
 	server.send(200, "text/plain", values);
 	Serial.println(__FUNCTION__);
 }
+
+#endif
+

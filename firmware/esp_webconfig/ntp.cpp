@@ -1,11 +1,6 @@
-#ifndef HELPERS_H
-#define HELPERS_H
+#include "ntp.h"
 
-bool checkRange(String Value);
-
-String getMacAddress();
-
-String urlDecode(String input);
+DateTime dateTime;
 
 #if 0
 
@@ -144,4 +139,3 @@ void NTPRefresh()
 }
 #endif
 
-#endif

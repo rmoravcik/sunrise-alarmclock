@@ -1,6 +1,9 @@
 #ifndef PAGE_INFOMATION_H
 #define PAGE_INFOMATION_H
 
+#include "ntp.h"
+#include "common.h"
+
 //
 //   The HTML PAGE
 //
@@ -71,15 +74,16 @@ void send_information_values_html()
 	    (String) WiFi.subnetMask()[1] + "." +
 	    (String) WiFi.subnetMask()[2] + "." +
 	    (String) WiFi.subnetMask()[3] + "|div\n";
-	values += "x_mac|" + GetMacAddress() + "|div\n";
+	values += "x_mac|" + getMacAddress() + "|div\n";
 	values +=
-	    "x_ntp|" + (String) DateTime.hour + ":" + (String) +
-	    DateTime.minute + ":" + (String) DateTime.second + " " +
-	    (String) DateTime.year + "-" + (String) DateTime.month + "-" +
-	    (String) DateTime.day + "|div\n";
+	    "x_ntp|" + (String) dateTime.hour + ":" + (String) +
+	    dateTime.minute + ":" + (String) dateTime.second + " " +
+	    (String) dateTime.year + "-" + (String) dateTime.month + "-" +
+	    (String) dateTime.day + "|div\n";
 	server.send(200, "text/plain", values);
 	Serial.println(__FUNCTION__);
 
 }
 
 #endif
+

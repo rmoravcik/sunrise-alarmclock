@@ -1,3 +1,9 @@
+#ifndef PAGE_NTPSETTINGS
+#define PAGE_NTPSETTINGS
+
+#include "config.h"
+#include "common.h"
+
 const char PAGE_NTPConfiguration[] PROGMEM = R"=====(
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
@@ -75,7 +81,7 @@ void send_NTP_configuration_html()
 		String temp = "";
 		for (uint8_t i = 0; i < server.args(); i++) {
 			if (server.argName(i) == "ntpserver")
-				config.ntpServerName = urldecode(server.arg(i));
+				config.ntpServerName = urlDecode(server.arg(i));
 			if (server.argName(i) == "update")
 				config.ntpUpdateTime = server.arg(i).toInt();
 			if (server.argName(i) == "tz")
@@ -84,7 +90,6 @@ void send_NTP_configuration_html()
 				config.daylight = true;
 		}
 		WriteConfig();
-		firstStart = true;
 	}
 	server.send(200, "text/html", reinterpret_cast<const __FlashStringHelper *>(PAGE_NTPConfiguration));
 	Serial.println(__FUNCTION__);
@@ -101,3 +106,6 @@ void send_NTP_configuration_values_html()
 	server.send(200, "text/plain", values);
 	Serial.println(__FUNCTION__);
 }
+
+#endif
+
