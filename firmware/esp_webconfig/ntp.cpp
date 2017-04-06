@@ -11,15 +11,15 @@ static const uint8_t monthDays[] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30,
 boolean isSummerTime(int year, byte month, byte day, byte hour, byte tzHours)
 // input parameters: "normal time" for year, month, day, hour and tzHours (0=UTC, 1=MEZ)
 {
-	if (month < 3 || month > 10)
-		return false;
-	if (month > 3 && month < 10)
-		return true;
-	if (((month == 3) && ((hour + 24 * day) >= (1 + tzHours + 24 * (31 - (5 * year / 4 + 4) % 7)))) ||
-	    ((month == 10) && ((hour + 24 * day) < (1 + tzHours + 24 * (31 - (5 * year / 4 + 1) % 7)))))
-		return true;
-	else
-		return false;
+  if (month < 3 || month > 10)
+    return false;
+  if (month > 3 && month < 10)
+    return true;
+  if (((month == 3) && ((hour + 24 * day) >= (1 + tzHours + 24 * (31 - (5 * year / 4 + 4) % 7)))) ||
+      ((month == 10) && ((hour + 24 * day) < (1 + tzHours + 24 * (31 - (5 * year / 4 + 1) % 7)))))
+    return true;
+  else
+    return false;
 }
 
 //
@@ -28,52 +28,52 @@ boolean isSummerTime(int year, byte month, byte day, byte hour, byte tzHours)
 
 void ConvertUnixTimeStamp(unsigned long TimeStamp, struct strDateTime *DateTime)
 {
-	uint8_t year;
-	uint8_t month, monthLength;
-	uint32_t time;
-	unsigned long days;
-	time = (uint32_t) TimeStamp;
-	DateTime->second = time % 60;
-	time /= 60;		// now it is minutes
-	DateTime->minute = time % 60;
-	time /= 60;		// now it is hours
-	DateTime->hour = time % 24;
-	time /= 24;		// now it is days
-	DateTime->wday = ((time + 4) % 7) + 1;	// Sunday is day 1 
+  uint8_t year;
+  uint8_t month, monthLength;
+  uint32_t time;
+  unsigned long days;
+  time = (uint32_t) TimeStamp;
+  DateTime->second = time % 60;
+  time /= 60;    // now it is minutes
+  DateTime->minute = time % 60;
+  time /= 60;    // now it is hours
+  DateTime->hour = time % 24;
+  time /= 24;    // now it is days
+  DateTime->wday = ((time + 4) % 7) + 1;  // Sunday is day 1 
 
-	year = 0;
-	days = 0;
-	while ((unsigned)(days += (LEAP_YEAR(year) ? 366 : 365)) <= time) {
-		year++;
-	}
-	DateTime->year = year;	// year is offset from 1970 
+  year = 0;
+  days = 0;
+  while ((unsigned)(days += (LEAP_YEAR(year) ? 366 : 365)) <= time) {
+    year++;
+  }
+  DateTime->year = year;  // year is offset from 1970 
 
-	days -= LEAP_YEAR(year) ? 366 : 365;
-	time -= days;		// now it is days in this year, starting at 0
+  days -= LEAP_YEAR(year) ? 366 : 365;
+  time -= days;    // now it is days in this year, starting at 0
 
-	days = 0;
-	month = 0;
-	monthLength = 0;
-	for (month = 0; month < 12; month++) {
-		if (month == 1) {	// february
-			if (LEAP_YEAR(year)) {
-				monthLength = 29;
-			} else {
-				monthLength = 28;
-			}
-		} else {
-			monthLength = monthDays[month];
-		}
+  days = 0;
+  month = 0;
+  monthLength = 0;
+  for (month = 0; month < 12; month++) {
+    if (month == 1) {  // february
+      if (LEAP_YEAR(year)) {
+        monthLength = 29;
+      } else {
+        monthLength = 28;
+      }
+    } else {
+      monthLength = monthDays[month];
+    }
 
-		if (time >= monthLength) {
-			time -= monthLength;
-		} else {
-			break;
-		}
-	}
-	DateTime->month = month + 1;	// jan is month 1  
-	DateTime->day = time + 1;	// day of month
-	DateTime->year += 1970;
+    if (time >= monthLength) {
+      time -= monthLength;
+    } else {
+      break;
+    }
+  }
+  DateTime->month = month + 1;  // jan is month 1  
+  DateTime->day = time + 1;  // day of month
+  DateTime->year += 1970;
 
 }
 
