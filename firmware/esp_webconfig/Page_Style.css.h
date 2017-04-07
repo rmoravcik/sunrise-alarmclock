@@ -26,6 +26,10 @@ td {
   padding: 12px;
 }
 
+input[type="number"] {
+    width: 50px;
+}
+
 #menu {
   margin: 0px;
   padding: 0px;

@@ -6,8 +6,16 @@
 #define DEFAULT_SSID "Sunrise Clock"
 #define DEFAULT_PASSWORD "12345678"
 
+#define DEFAULT_HOSTNAME "sunriseclock"
+
 extern boolean configMode;
 extern int connectionTimeout;
+
+struct Alarm {
+  bool enabled;
+  char hour;
+  char min;
+};
 
 struct Configuration {
   String ssid;
@@ -23,6 +31,10 @@ struct Configuration {
 
   String ntpServerName;
   long ntpUpdateTime;
+
+  String hostname;
+
+  Alarm alarm[7];
 };
 
 extern Configuration config;

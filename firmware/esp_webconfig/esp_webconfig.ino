@@ -32,7 +32,8 @@ void Tick()
     } else {
       if (mDNSResponse == false) {
         Serial.println(WiFi.localIP());
-        MDNS.begin("sunrisealarm");
+        MDNS.begin(config.hostname.c_str());
+        MDNS.addService("http", "tcp", 80);
         mDNSResponse = true;
       }
 

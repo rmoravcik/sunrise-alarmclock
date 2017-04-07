@@ -16,6 +16,14 @@ const char PAGE_Information[] PROGMEM = R"=====(
   <br><br>
   <table border="0" style="width:310px" class="center">
     <tr>
+      <td align="right">Jméno:</td>
+      <td><span id="x_hostname"></span></td>
+    </tr>
+    <tr>
+      <td align="right">Stav:</td>
+      <td><span id="x_connectionstate"></span></td>
+    </tr>
+    <tr>
       <td align="right">SSID:</td>
       <td><span id="x_ssid"></span></td>
     </tr>
@@ -69,9 +77,26 @@ const char PAGE_Information[] PROGMEM = R"=====(
 
 void send_information_values_html()
 {
-
+  String state = "N/A";
   String values = "";
 
+  if (WiFi.status() == 0)
+    state = "Nečinný";
+  else if (WiFi.status() == 1)
+    state = "Žádne dostupné SSID";
+  else if (WiFi.status() == 2)
+    state = "Hledáni dokončeno";
+  else if (WiFi.status() == 3)
+    state = "Připojen";
+  else if (WiFi.status() == 4)
+    state = "Spojení selhalo";
+  else if (WiFi.status() == 5)
+    state = "Spojení ztraceno";
+  else if (WiFi.status() == 6)
+    state = "Odpojený";
+
+  values += "x_connectionstate|" + state + "|div\n";
+  values += "x_hostname|" + (String) config.hostname + "|div\n";
   values += "x_ssid|" + (String) WiFi.SSID() + "|div\n";
   values += "x_ip|" + (String) WiFi.localIP()[0] + "." +
             (String) WiFi.localIP()[1] + "." + (String) WiFi.localIP()[2] +

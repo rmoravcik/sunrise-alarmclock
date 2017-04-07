@@ -94,6 +94,8 @@ void WriteConfig()
   EEPROMWritelong(85, config.ntpUpdateTime);
   WriteStringToEEPROM(89, config.ntpServerName);
 
+  WriteStringToEEPROM(121, config.hostname);
+
   EEPROM.commit();
 }
 
@@ -121,6 +123,14 @@ void WriteDefaultConfig()
 
   config.ntpServerName = "pool.ntp.org";
   config.ntpUpdateTime = 0;
+
+  config.hostname = DEFAULT_HOSTNAME;
+
+  for (int i = 0; i < 7; i++) {
+    config.alarm[i].enabled = false;
+    config.alarm[i].hour = 0;
+    config.alarm[i].min = 0;
+  }
 
   WriteConfig();
 }
@@ -150,6 +160,9 @@ boolean ReadConfig()
 
     config.ntpUpdateTime = EEPROMReadlong(85);
     config.ntpServerName = ReadStringFromEEPROM(89);
+
+    config.hostname = ReadStringFromEEPROM(121);
+
     return true;
   } else {
     return false;
@@ -158,11 +171,6 @@ boolean ReadConfig()
 
 void ConfigureConfigMode()
 {
-  Serial.print("Configuring Admin mode: SSID=");
-  Serial.print(DEFAULT_SSID);
-  Serial.print(" Password=");
-  Serial.println(DEFAULT_PASSWORD);
-
   configMode = true;
   WiFi.mode(WIFI_AP);
   WiFi.softAPConfig(adminIpAddress, adminIpAddress, adiminNetmask);
@@ -174,15 +182,8 @@ void ConfigureConfigMode()
 
 void ConfigureNetwork()
 {
-  Serial.print("Configuring Wifi: SSID=");
-  Serial.print(config.ssid.c_str());
-  Serial.print(" Password=");
-  Serial.println(config.password.c_str());
-
   configMode = false;
-
   dns.stop();
-
   WiFi.mode(WIFI_STA);
   WiFi.begin(config.ssid.c_str(), config.password.c_str());
 
