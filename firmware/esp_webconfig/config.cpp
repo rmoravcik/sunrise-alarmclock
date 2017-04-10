@@ -96,6 +96,12 @@ void WriteConfig()
 
   WriteStringToEEPROM(121, config.hostname);
 
+  for (int i = 0; i < 7; i++) {
+    EEPROM.write(153 + 3 * i, config.alarm[i].enabled);
+    EEPROM.write(154 + 3 * i, config.alarm[i].hour);
+    EEPROM.write(155 + 3 * i, config.alarm[i].min);
+  }
+
   EEPROM.commit();
 }
 
@@ -162,6 +168,18 @@ boolean ReadConfig()
     config.ntpServerName = ReadStringFromEEPROM(89);
 
     config.hostname = ReadStringFromEEPROM(121);
+
+    for (int i = 0; i < 7; i++) {
+      config.alarm[i].enabled = EEPROM.read(153 + 3 * i);
+      config.alarm[i].hour = EEPROM.read(154 + 3 * i);
+      config.alarm[i].min = EEPROM.read(155 + 3 * i);
+
+      if ((config.alarm[i].hour > 23) || (config.alarm[i].min > 59)) {
+        config.alarm[i].enabled = false;
+        config.alarm[i].hour = 0;
+        config.alarm[i].min = 0;
+      }
+    }
 
     return true;
   } else {

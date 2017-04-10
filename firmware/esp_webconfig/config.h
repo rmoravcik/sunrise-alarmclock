@@ -13,8 +13,8 @@ extern int connectionTimeout;
 
 struct Alarm {
   bool enabled;
-  char hour;
-  char min;
+  byte hour;
+  byte min;
 };
 
 struct Configuration {

@@ -1,6 +1,9 @@
 #ifndef PAGE_ROOT_H
 #define PAGE_ROOT_H
 
+#include "WString.h"
+
+#include "config.h"
 #include "common.h"
 
 const char PAGE_root[] PROGMEM = R"=====(
@@ -17,37 +20,37 @@ const char PAGE_root[] PROGMEM = R"=====(
   <table border="0" style="width:310px" class="center">
       <tr>
         <td align="left">Pondělí</td>
-        <td><input type="time" id="day1" name="day1" value="00:00"></td>
+        <td><input type="time" id="day1" name="day1" value=""></td>
         <td><input type="checkbox" id="day1_enable" name="day1_enable"></td>
       </tr>
       <tr>
         <td align="left">Úterý</td>
-        <td><input type="time" id="day2" name="day2" value="00:00"></td>
+        <td><input type="time" id="day2" name="day2" value=""></td>
         <td><input type="checkbox" id="day2_enable" name="day2_enable"></td>
       </tr>
       <tr>
         <td align="left">Středa</td>
-        <td><input type="time" id="day3" name="day3" value="00:00"></td>
+        <td><input type="time" id="day3" name="day3" value=""></td>
         <td><input type="checkbox" id="day3_enable" name="day3_enable"></td>
       </tr>
       <tr>
         <td align="left">Čtvrtek</td>
-        <td><input type="time" id="day4" name="day4" value="00:00"></td>
+        <td><input type="time" id="day4" name="day4" value=""></td>
         <td><input type="checkbox" id="day4_enable" name="day4_enable"></td>
       </tr>
       <tr>
         <td align="left">Pátek</td>
-        <td><input type="time" id="day5" name="day5" value="00:00"></td>
+        <td><input type="time" id="day5" name="day5" value=""></td>
         <td><input type="checkbox" id="day5_enable" name="day5_enable"></td>
       </tr>
       <tr>
         <td align="left">Sobota</td>
-        <td><input type="time" id="day6" name="day6" value="00:00"></td>
+        <td><input type="time" id="day6" name="day6" value=""></td>
         <td><input type="checkbox" id="day6_enable" name="day6_enable"></td>
       </tr>
       <tr>
         <td align="left">Neděle</td>
-        <td><input type="time" id="day7" name="day7" value="00:00"></td>
+        <td><input type="time" id="day7" name="day7" value=""></td>
         <td><input type="checkbox" id="day7_enable" name="day7_enable"></td>
       </tr>
       <tr>
@@ -74,7 +77,14 @@ const char PAGE_root[] PROGMEM = R"=====(
 void send_root_values_html()
 {
   String values ="";
-  values += "mydynamicdata|" + (String) + "This is filled by AJAX. Millis since start: " + (String) millis() + "|div\n";   // Build a string, like this:  ID|VALUE|TYPE
+
+  for (int i = 0; i < 7; i++) {
+    char time_buf[6];
+    sprintf(time_buf, "%02d:%02d", config.alarm[i].hour, config.alarm[i].min);
+    values += "day"+ (String) (i + 1) + "|" + (String) time_buf + "|input\n";
+    values += "day"+ (String) (i + 1) + "_enable|" + (String) (config.alarm[i].enabled ? "checked" : "") + "|chk\n";
+  }
+
   server.send(200, "text/plain", values);
 }
 
@@ -82,13 +92,77 @@ void send_root_html()
 {
   if (server.args() > 0)  // Are there any POST/GET Fields ?
   {
+    for (int i = 0; i < 7; i++) {
+      config.alarm[i].enabled = false;
+    }
+
     for (uint8_t i = 0; i < server.args(); i++) {  // Iterate through the fields
-      if (server.argName(i) == "firstname")
+      if (server.argName(i) == "day1")
       {
-        // Your processing for the transmitted form-variable 
-        String fName = server.arg(i);
+        config.alarm[0].hour = server.arg(i).substring(0,2).toInt();
+        config.alarm[0].min = server.arg(i).substring(3,5).toInt();
+      }
+      if (server.argName(i) == "day1_enable")
+      {
+        config.alarm[0].enabled = true;
+      }
+      if (server.argName(i) == "day2")
+      {
+        config.alarm[1].hour = server.arg(i).substring(0,2).toInt();
+        config.alarm[1].min = server.arg(i).substring(3,5).toInt();
+      }
+      if (server.argName(i) == "day2_enable")
+      {
+        config.alarm[1].enabled = true;
+      }
+      if (server.argName(i) == "day3")
+      {
+        config.alarm[2].hour = server.arg(i).substring(0,2).toInt();
+        config.alarm[2].min = server.arg(i).substring(3,5).toInt();
+      }
+      if (server.argName(i) == "day3_enable")
+      {
+        config.alarm[2].enabled = true;
+      }
+      if (server.argName(i) == "day4")
+      {
+        config.alarm[3].hour = server.arg(i).substring(0,2).toInt();
+        config.alarm[3].min = server.arg(i).substring(3,5).toInt();
+      }
+      if (server.argName(i) == "day4_enable")
+      {
+        config.alarm[3].enabled = true;
+      }
+      if (server.argName(i) == "day5")
+      {
+        config.alarm[4].hour = server.arg(i).substring(0,2).toInt();
+        config.alarm[4].min = server.arg(i).substring(3,5).toInt();
+      }
+      if (server.argName(i) == "day5_enable")
+      {
+        config.alarm[4].enabled = true;
+      }
+      if (server.argName(i) == "day6")
+      {
+        config.alarm[5].hour = server.arg(i).substring(0,2).toInt();
+        config.alarm[5].min = server.arg(i).substring(3,5).toInt();
+      }
+      if (server.argName(i) == "day6_enable")
+      {
+        config.alarm[5].enabled = true;
+      }
+      if (server.argName(i) == "day7")
+      {
+        config.alarm[6].hour = server.arg(i).substring(0,2).toInt();
+        config.alarm[6].min = server.arg(i).substring(3,5).toInt();
+      }
+      if (server.argName(i) == "day7_enable")
+      {
+        config.alarm[6].enabled = true;
       }
     }
+
+    WriteConfig();
   }
 
   server.send(200, "text/html", reinterpret_cast<const __FlashStringHelper *>(PAGE_root));
