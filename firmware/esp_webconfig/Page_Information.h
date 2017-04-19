@@ -1,7 +1,6 @@
 #ifndef PAGE_INFOMATION_H
 #define PAGE_INFOMATION_H
 
-#include "ntp.h"
 #include "common.h"
 
 const char PAGE_Information[] PROGMEM = R"=====(
@@ -45,10 +44,6 @@ const char PAGE_Information[] PROGMEM = R"=====(
     </tr>
     <tr>
       <td colspan="2"><hr></span></td>
-    </tr>
-    <tr>
-      <td align="right">NTP čas:</td>
-      <td><span id="x_ntp"></span></td>
     </tr>
     <tr>
       <td colspan="2" align="center"><a href="javascript:GetState()" class="btn btn--m btn--green">Obnovit</a></td>
@@ -109,10 +104,6 @@ void send_information_values_html()
             (String) WiFi.subnetMask()[2] + "." +
             (String) WiFi.subnetMask()[3] + "|div\n";
   values += "x_mac|" + getMacAddress() + "|div\n";
-  values += "x_ntp|" + (String) dateTime.hour + ":" + (String) +
-            dateTime.minute + ":" + (String) dateTime.second + " " +
-            (String) dateTime.year + "-" + (String) dateTime.month + "-" +
-            (String) dateTime.day + "|div\n";
   server.send(200, "text/plain", values);
 }
 
