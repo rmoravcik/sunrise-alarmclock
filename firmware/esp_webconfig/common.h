@@ -6,6 +6,7 @@
 
 extern ESP8266WebServer server;
 extern DNSServer dns;
+extern WiFiUDP udp;
 
 #endif
 

@@ -8,7 +8,7 @@ IPAddress adiminNetmask(255, 255, 255, 0);
 
 Configuration config;
 
-boolean configMode = false;
+bool configMode = false;
 int connectionTimeout = 0;
 
 static void WriteStringToEEPROM(int beginaddress, String string)
@@ -141,7 +141,7 @@ void WriteDefaultConfig()
   WriteConfig();
 }
 
-boolean ReadConfig()
+bool ReadConfig()
 {
   if (EEPROM.read(0) == 'C' && EEPROM.read(1) == 'F' && EEPROM.read(2) == 'G') {
     config.ssid = ReadStringFromEEPROM(3);

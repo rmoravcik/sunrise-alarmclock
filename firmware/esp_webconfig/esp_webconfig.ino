@@ -19,6 +19,7 @@
 
 ESP8266WebServer server(80);
 DNSServer dns;
+WiFiUDP udp;
 Ticker tkSecond;
 
 bool mDNSResponse = false;
@@ -35,6 +36,8 @@ void Tick()
         MDNS.begin(config.hostname.c_str());
         MDNS.addService("http", "tcp", 80);
         mDNSResponse = true;
+
+        ntpRefresh();
       }
 
       connectionTimeout = 0;
@@ -123,11 +126,21 @@ void setup(void)
   server.begin();
 
   tkSecond.attach(1, Tick);
-//  UDPNTPClient.begin(2390);
+
+  udp.begin(2390);
 }
 
 void loop(void)
 {
+  if (ntpRequestSent) {
+    int cb = udp.parsePacket();
+    if (!cb) {
+    } else {
+      Serial.print("packet received, length=");
+      Serial.println(cb);
+    }
+  }
+  
   if (configMode) {
     dns.processNextRequest();
   }
