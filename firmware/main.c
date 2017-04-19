@@ -160,7 +160,7 @@ ISR(PCINT1_vect, ISR_NOBLOCK)
 
     // Check update of display every 500ms to speed up response to button press
     if (status & (DISPLAY_ON | PREALARM_RUNNING | PREALARM_STOPPING |
-                  ALARM_RUNNING | ALARM_STOPPING | NIGHT_LAMP_MODE)) {
+                  ALARM_RUNNING | ALARM_STOPPING | ALARM_TIMEOUT | NIGHT_LAMP_MODE)) {
         sprintf(buf, "%02d:%02d", time->hour, time->min);
         ssd1306_string_font25x32xy(3, 0, buf);
 
