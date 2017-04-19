@@ -7,7 +7,8 @@ DateTime dateTime;
 const int NTP_PACKET_SIZE = 48;
 byte packetBuffer[NTP_PACKET_SIZE];
 
-bool ntpRequestSent = false;
+int ntpUpdateTimeout = 0;
+bool waitingNtpResponse = false;
 
 static const uint8_t monthDays[] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
 
@@ -80,29 +81,30 @@ void ConvertUnixTimeStamp(unsigned long timestamp, struct DateTime *dt)
   dt->year += 1970;
 }
 
-void ntpRefresh(void)
+void ntpUpdate(void)
 {
-  IPAddress ntpServerIpAddres;
+  if (config.ntpUpdateTime > 0) {
+#ifdef SERIAL_DEBUG  
+    Serial.print("Sending NTP request to ");
+    Serial.println(config.ntpServerName.c_str());
+#endif
 
-  WiFi.hostByName(config.ntpServerName.c_str(), ntpServerIpAddres);
-  
-  Serial.print("sending NTP packet to ");
-  Serial.println(ntpServerIpAddres);
+    memset(packetBuffer, 0, NTP_PACKET_SIZE);
+    packetBuffer[0] = 0b11100011; // LI, Version, Mode
+    packetBuffer[1] = 0;  // Stratum, or type of clock
+    packetBuffer[2] = 6;  // Polling Interval
+    packetBuffer[3] = 0xEC; // Peer Clock Precision
+    packetBuffer[12] = 49;
+    packetBuffer[13] = 0x4E;
+    packetBuffer[14] = 49;
+    packetBuffer[15] = 52;
 
-  memset(packetBuffer, 0, NTP_PACKET_SIZE);
-  packetBuffer[0] = 0b11100011; // LI, Version, Mode
-  packetBuffer[1] = 0;  // Stratum, or type of clock
-  packetBuffer[2] = 6;  // Polling Interval
-  packetBuffer[3] = 0xEC; // Peer Clock Precision
-  packetBuffer[12] = 49;
-  packetBuffer[13] = 0x4E;
-  packetBuffer[14] = 49;
-  packetBuffer[15] = 52;
+    udp.beginPacket(config.ntpServerName.c_str(), 123);
+    udp.write(packetBuffer, NTP_PACKET_SIZE);
+    udp.endPacket();
 
-  udp.beginPacket(ntpServerIpAddres, 123);
-  udp.write(packetBuffer, NTP_PACKET_SIZE);
-  udp.endPacket();
-
-  ntpRequestSent = true;
+    waitingNtpResponse = true;
+    ntpUpdateTimeout = 0;
+  }
 }
 

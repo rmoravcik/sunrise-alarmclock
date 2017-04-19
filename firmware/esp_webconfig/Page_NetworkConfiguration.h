@@ -85,7 +85,7 @@ const char PAGE_NetworkConfiguration[] PROGMEM = R"=====(
 const char PAGE_WaitAndReload[] PROGMEM = R"=====(
   <meta http-equiv="refresh" content="5; URL=config.html">
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-  Počkejte prosím.... Konfiguruji a restartuji.
+  Čekejte prosím.... Konfiguruji a restartuji.
 )=====";
 
 void send_network_configuration_html()

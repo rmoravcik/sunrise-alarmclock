@@ -2,6 +2,8 @@
 #define PAGE_NTPSETTINGS
 
 #include "config.h"
+#include "ntp.h"
+
 #include "common.h"
 
 const char PAGE_NTPConfiguration[] PROGMEM = R"=====(
@@ -106,6 +108,7 @@ void send_NTP_configuration_html()
         config.daylight = true;
     }
     WriteConfig();
+    ntpUpdate();
   }
   server.send(200, "text/html", reinterpret_cast<const __FlashStringHelper *>(PAGE_NTPConfiguration));
 }

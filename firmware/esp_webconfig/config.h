@@ -10,7 +10,6 @@
 #define DEFAULT_HOSTNAME "sunriseclock"
 
 extern bool configMode;
-extern int connectionTimeout;
 
 struct Alarm {
   bool enabled;
@@ -47,6 +46,8 @@ bool ReadConfig();
 
 void ConfigureConfigMode();
 void ConfigureNetwork();
+
+bool NetworkAvailable();
 
 #endif
 

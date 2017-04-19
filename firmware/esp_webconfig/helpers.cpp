@@ -58,3 +58,16 @@ String urlDecode(String input)  // (based on https://code.google.com/p/avr-netin
   }
   return ret;
 }
+
+String IPAddressToString(IPAddress address)
+{
+  String res = "";
+
+  for (int i = 0; i < 3; i++) {
+    res += String((address >> (8 * i)) & 0xFF) + ".";
+  }
+
+  res += String(((address >> 8 * 3)) & 0xFF);
+  return res;
+}
+

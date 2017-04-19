@@ -15,8 +15,9 @@ struct DateTime {
 
 extern DateTime dateTime;
 
-extern bool ntpRequestSent;
+extern int ntpUpdateTimeout;
+extern bool waitingNtpResponse;
 
-void ntpRefresh(void);
+void ntpUpdate(void);
 
 #endif

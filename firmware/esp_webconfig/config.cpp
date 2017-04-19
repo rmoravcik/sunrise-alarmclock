@@ -7,9 +7,7 @@ IPAddress adminIpAddress(192, 168, 1, 100);
 IPAddress adiminNetmask(255, 255, 255, 0);
 
 Configuration config;
-
 bool configMode = false;
-int connectionTimeout = 0;
 
 static void WriteStringToEEPROM(int beginaddress, String string)
 {
@@ -189,18 +187,26 @@ bool ReadConfig()
 
 void ConfigureConfigMode()
 {
-  configMode = true;
+#ifdef SERIAL_DEBUG
+  Serial.println("Switching to config mode");
+#endif
+  
   WiFi.mode(WIFI_AP);
   WiFi.softAPConfig(adminIpAddress, adminIpAddress, adiminNetmask);
   WiFi.softAP(DEFAULT_SSID, DEFAULT_PASSWORD);
 
   dns.setErrorReplyCode(DNSReplyCode::NoError);
   dns.start(53, "*", adminIpAddress);
+  configMode = true;
 }
 
 void ConfigureNetwork()
 {
-  configMode = false;
+#ifdef SERIAL_DEBUG
+  Serial.print("Connecting to network ");
+  Serial.println(config.ssid.c_str());
+#endif
+  
   dns.stop();
   WiFi.mode(WIFI_STA);
   WiFi.begin(config.ssid.c_str(), config.password.c_str());
@@ -219,6 +225,18 @@ void ConfigureNetwork()
                           config.netmask[2],
                           config.netmask[3]));
   }
-  
-  connectionTimeout = 0;
+  configMode = false;
 }
+
+bool NetworkAvailable()
+{
+  int n = WiFi.scanNetworks();
+
+  for (int i = 0; i < n; i++) {
+    if (WiFi.SSID(i) == config.ssid) {
+      return true;
+    }
+  }
+  return false;
+}
+

@@ -7,4 +7,6 @@ String getMacAddress();
 
 String urlDecode(String input);
 
+String IPAddressToString(IPAddress ip);
+
 #endif

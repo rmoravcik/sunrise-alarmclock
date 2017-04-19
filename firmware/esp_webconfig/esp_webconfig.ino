@@ -22,32 +22,17 @@ DNSServer dns;
 WiFiUDP udp;
 Ticker tkSecond;
 
-bool mDNSResponse = false;
+int connectionTimeout = 0;
+bool mdnsResponseSent = false;
 
 void Tick()
 {
-  if (!configMode) {
-    if (WiFi.status() != WL_CONNECTED) {
-      connectionTimeout++;
-      mDNSResponse = false;
-    } else {
-      if (mDNSResponse == false) {
-        Serial.println(WiFi.localIP());
-        MDNS.begin(config.hostname.c_str());
-        MDNS.addService("http", "tcp", 80);
-        mDNSResponse = true;
+  connectionTimeout++;
 
-        ntpRefresh();
-      }
-
-      connectionTimeout = 0;
-    }
-
-    if (connectionTimeout > 30) {
-      ConfigureConfigMode();
-    }
+  if (config.ntpUpdateTime > 0) {
+    ntpUpdateTimeout++;  
   }
-
+  
 #if 0
   strDateTime tempDateTime;
   AdminTimeOutCounter++;
@@ -73,6 +58,8 @@ void setup(void)
   Serial.begin(115200);
   delay(500);
 
+  connectionTimeout = 0;
+  
   if (!ReadConfig()) {
     WriteDefaultConfig();
     ConfigureConfigMode();
@@ -81,32 +68,28 @@ void setup(void)
   }
 
   server.on("/favicon.ico",[]() {
-      server.send(200, "text/html", "");}
+    server.send(200, "text/html", "");}
   );
 
   server.on("/", send_root_html);
 
-  server.on("/generate_204", []() {
-      server.send (200, "text/html", reinterpret_cast<const __FlashStringHelper *>(PAGE_ConfigurationPage));}
-  );
-
   server.on("/config.html", []() {
-      server.send (200, "text/html", reinterpret_cast<const __FlashStringHelper *>(PAGE_ConfigurationPage));}
+    server.send (200, "text/html", reinterpret_cast<const __FlashStringHelper *>(PAGE_ConfigurationPage));}
   );
 
   server.on("/network.html", send_network_configuration_html);
 
   server.on("/info.html",[]() {
-      server.send(200, "text/html", reinterpret_cast<const __FlashStringHelper *>(PAGE_Information));}
+    server.send(200, "text/html", reinterpret_cast<const __FlashStringHelper *>(PAGE_Information));}
   );
   server.on("/ntp.html", send_NTP_configuration_html);
 
   server.on("/style.css",[]() {
-      server.send(200, "text/plain", reinterpret_cast<const __FlashStringHelper *>(PAGE_Style_css));}
+    server.send(200, "text/plain", reinterpret_cast<const __FlashStringHelper *>(PAGE_Style_css));}
   );
 
   server.on("/microajax.js",[]() {
-      server.send(200, "text/plain", reinterpret_cast<const __FlashStringHelper *>(PAGE_microajax_js));}
+    server.send(200, "text/plain", reinterpret_cast<const __FlashStringHelper *>(PAGE_microajax_js));}
   );
 
   server.on("/admin/rootvalues", send_root_values_html);
@@ -120,7 +103,14 @@ void setup(void)
   server.on("/admin/ntpvalues", send_NTP_configuration_values_html);
 
   server.onNotFound([]() {
-        server.send(400, "text/html", "Page not Found");}
+    Serial.println(server.hostHeader());
+    if (configMode) {
+      server.sendHeader("Location", "http://" + IPAddressToString(server.client().localIP()) + "/config.html", true);
+      server.send(302, "text/plain", "");
+      server.client().stop();
+    } else {
+      server.send(400, "text/html", "Page not Found");}    
+    }
   );
 
   server.begin();
@@ -132,7 +122,7 @@ void setup(void)
 
 void loop(void)
 {
-  if (ntpRequestSent) {
+  if (waitingNtpResponse) {
     int cb = udp.parsePacket();
     if (!cb) {
     } else {
@@ -140,9 +130,49 @@ void loop(void)
       Serial.println(cb);
     }
   }
-  
+
   if (configMode) {
+    if (connectionTimeout > 30) {
+#ifdef SERIAL_DEBUG
+      Serial.println("Scanning available networks");
+#endif
+      if (NetworkAvailable()) {
+        ConfigureNetwork();
+      }
+
+      connectionTimeout = 0;    
+    }
+    
     dns.processNextRequest();
+  } else {
+    if (connectionTimeout > 30) {
+#ifdef SERIAL_DEBUG
+      Serial.println("Connection timeout");
+#endif
+      ConfigureConfigMode();
+
+      connectionTimeout = 0;    
+      mdnsResponseSent = false;
+    }
+
+    if (WiFi.status() == WL_CONNECTED) {
+      if (!mdnsResponseSent) {
+#ifdef SERIAL_DEBUG
+          Serial.println("Sending mDNS response");
+#endif
+          MDNS.begin(config.hostname.c_str());
+          MDNS.addService("http", "tcp", 80);
+          mdnsResponseSent = true;      
+
+          ntpUpdate();
+      }
+
+      if (ntpUpdateTimeout > config.ntpUpdateTime * 60) {
+        ntpUpdate();
+      }
+
+      connectionTimeout = 0;
+    }
   }
 
   server.handleClient();
