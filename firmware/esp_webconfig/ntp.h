@@ -13,11 +13,14 @@ struct DateTime {
   byte wday;
 };
 
-extern DateTime dateTime;
+extern unsigned long current_time;
 
 extern int ntpUpdateTimeout;
 extern bool waitingNtpResponse;
 
+void LocalTime(unsigned long epoch, struct DateTime *dt);
+
 void ntpUpdate(void);
+void ntpResponse(void);
 
 #endif

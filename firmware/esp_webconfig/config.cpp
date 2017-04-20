@@ -63,7 +63,7 @@ static long EEPROMReadlong(long address)
       ((two << 16) & 0xFFFFFF) + ((one << 24) & 0xFFFFFFFF);
 }
 
-void WriteConfig()
+void WriteConfig(void)
 {
   EEPROM.write(0, 'C');
   EEPROM.write(1, 'F');
@@ -103,7 +103,7 @@ void WriteConfig()
   EEPROM.commit();
 }
 
-void WriteDefaultConfig()
+void WriteDefaultConfig(void)
 {
   config.ssid = DEFAULT_SSID;
   config.password = DEFAULT_PASSWORD;
@@ -139,7 +139,7 @@ void WriteDefaultConfig()
   WriteConfig();
 }
 
-bool ReadConfig()
+bool ReadConfig(void)
 {
   if (EEPROM.read(0) == 'C' && EEPROM.read(1) == 'F' && EEPROM.read(2) == 'G') {
     config.ssid = ReadStringFromEEPROM(3);
@@ -185,7 +185,7 @@ bool ReadConfig()
   }
 }
 
-void ConfigureConfigMode()
+void ConfigureConfigMode(void)
 {
 #ifdef SERIAL_DEBUG
   Serial.println("Switching to config mode");
@@ -200,7 +200,7 @@ void ConfigureConfigMode()
   configMode = true;
 }
 
-void ConfigureNetwork()
+void ConfigureNetwork(void)
 {
 #ifdef SERIAL_DEBUG
   Serial.print("Connecting to network ");
@@ -228,7 +228,7 @@ void ConfigureNetwork()
   configMode = false;
 }
 
-bool NetworkAvailable()
+bool NetworkAvailable(void)
 {
   int n = WiFi.scanNetworks();
 

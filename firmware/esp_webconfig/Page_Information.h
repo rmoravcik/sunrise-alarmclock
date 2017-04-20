@@ -1,6 +1,7 @@
 #ifndef PAGE_INFOMATION_H
 #define PAGE_INFOMATION_H
 
+#include "ntp.h"
 #include "common.h"
 
 const char PAGE_Information[] PROGMEM = R"=====(
@@ -46,6 +47,10 @@ const char PAGE_Information[] PROGMEM = R"=====(
       <td colspan="2"><hr></span></td>
     </tr>
     <tr>
+      <td align="right">NTP čas:</td>
+      <td><span id="x_ntp"></span></td>
+    </tr>
+    <tr>
       <td colspan="2" align="center"><a href="javascript:GetState()" class="btn btn--m btn--green">Obnovit</a></td>
     </tr>
   </table>
@@ -74,6 +79,12 @@ void send_information_values_html()
 {
   String state = "N/A";
   String values = "";
+  String hour = "";
+  String minute = "";
+  String second = "";
+  String day = "";
+  String month = "";
+  DateTime dateTime;
 
   if (WiFi.status() == 0)
     state = "Nečinný";
@@ -90,6 +101,38 @@ void send_information_values_html()
   else if (WiFi.status() == 6)
     state = "Odpojený";
 
+  LocalTime(current_time, &dateTime);
+
+  if (dateTime.hour < 10) {
+    hour = "0" + (String) dateTime.hour;
+  } else {
+    hour = (String) dateTime.hour;
+  }
+
+  if (dateTime.minute < 10) {
+    minute = "0" + (String) dateTime.minute;
+  } else {
+    minute = (String) dateTime.minute;
+  }
+
+  if (dateTime.second < 10) {
+    second = "0" + (String) dateTime.second;
+  } else {
+    second = (String) dateTime.second;
+  }
+
+  if (dateTime.day < 10) {
+    day = "0" + (String) dateTime.day;
+  } else {
+    day = (String) dateTime.day;
+  }
+
+  if (dateTime.month < 10) {
+    month = "0" + (String) dateTime.month;
+  } else {
+    month = (String) dateTime.month;
+  }
+
   values += "x_connectionstate|" + state + "|div\n";
   values += "x_hostname|" + (String) config.hostname + "|div\n";
   values += "x_ssid|" + (String) WiFi.SSID() + "|div\n";
@@ -104,6 +147,8 @@ void send_information_values_html()
             (String) WiFi.subnetMask()[2] + "." +
             (String) WiFi.subnetMask()[3] + "|div\n";
   values += "x_mac|" + getMacAddress() + "|div\n";
+  values += "x_ntp|" + hour + ":" + minute + ":" + second + " " +
+            day + "." + month + "." + (String) dateTime.year + "|div\n";
   server.send(200, "text/plain", values);
 }
 

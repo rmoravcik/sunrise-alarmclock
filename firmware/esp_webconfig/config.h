@@ -39,15 +39,15 @@ struct Configuration {
 
 extern Configuration config;
 
-void WriteConfig();
-void WriteDefaultConfig();
+void WriteConfig(void);
+void WriteDefaultConfig(void);
 
-bool ReadConfig();
+bool ReadConfig(void);
 
-void ConfigureConfigMode();
-void ConfigureNetwork();
+void ConfigureConfigMode(void);
+void ConfigureNetwork(void);
 
-bool NetworkAvailable();
+bool NetworkAvailable(void);
 
 #endif
 

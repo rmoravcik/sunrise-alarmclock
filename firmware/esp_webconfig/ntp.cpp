@@ -2,7 +2,7 @@
 #include "common.h"
 #include "ntp.h"
 
-DateTime dateTime;
+unsigned long current_time;
 
 const int NTP_PACKET_SIZE = 48;
 byte packetBuffer[NTP_PACKET_SIZE];
@@ -10,12 +10,12 @@ byte packetBuffer[NTP_PACKET_SIZE];
 int ntpUpdateTimeout = 0;
 bool waitingNtpResponse = false;
 
+static const uint8_t weekDays[] = { 7, 1, 2, 3, 4, 5, 6 };
 static const uint8_t monthDays[] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
 
-#define LEAP_YEAR(Y) ( ((1970+Y)>0) && !((1970+Y)%4) && ( ((1970+Y)%100) || !((1970+Y)%400) ) )
+#define LEAP_YEAR(Y) (((1970 + Y) > 0) && !((1970 + Y) % 4) && (((1970 + Y) % 100) || !((1970 + Y) % 400)))
 
-boolean isSummerTime(int year, byte month, byte day, byte hour, byte tzHours)
-// input parameters: "normal time" for year, month, day, hour and tzHours (0=UTC, 1=MEZ)
+static boolean IsSummerTime(int year, byte month, byte day, byte hour, byte tzHours)
 {
   if (month < 3 || month > 10)
     return false;
@@ -28,38 +28,40 @@ boolean isSummerTime(int year, byte month, byte day, byte hour, byte tzHours)
     return false;
 }
 
-void ConvertUnixTimeStamp(unsigned long timestamp, struct DateTime *dt)
+static void EpochToDateTime(unsigned long epoch, struct DateTime *dt)
 {
   uint8_t year;
   uint8_t month, monthLength;
   uint32_t time;
   unsigned long days;
   
-  time = (uint32_t) timestamp;
+  time = (uint32_t) epoch;
   dt->second = time % 60;
   time /= 60;    // now it is minutes
   dt->minute = time % 60;
   time /= 60;    // now it is hours
   dt->hour = time % 24;
   time /= 24;    // now it is days
-  dt->wday = ((time + 4) % 7) + 1;  // Sunday is day 1 
+  dt->wday = weekDays[(time + 4) % 7];
 
   year = 0;
   days = 0;
+
   while ((unsigned)(days += (LEAP_YEAR(year) ? 366 : 365)) <= time) {
     year++;
   }
 
-  dt->year = year;  // year is offset from 1970 
+  dt->year = year;
 
   days -= LEAP_YEAR(year) ? 366 : 365;
-  time -= days;    // now it is days in this year, starting at 0
+  time -= days;
 
   days = 0;
   month = 0;
   monthLength = 0;
+
   for (month = 0; month < 12; month++) {
-    if (month == 1) {  // february
+    if (month == 1) {
       if (LEAP_YEAR(year)) {
         monthLength = 29;
       } else {
@@ -76,9 +78,26 @@ void ConvertUnixTimeStamp(unsigned long timestamp, struct DateTime *dt)
     }
   }
 
-  dt->month = month + 1;  // jan is month 1  
-  dt->day = time + 1;  // day of month
+  dt->month = month + 1;
+  dt->day = time + 1;
   dt->year += 1970;
+}
+
+void LocalTime(unsigned long epoch, struct DateTime *dt)
+{
+  DateTime temp;
+
+  EpochToDateTime(epoch + (config.timezone * 360) , &temp);
+
+  if (config.daylight) {
+    if (IsSummerTime(temp.year, temp.month, temp.day, temp.hour, 0)) {
+      EpochToDateTime(epoch + (config.timezone * 360) + 3600, dt);
+    } else {
+      *dt = temp;
+    }    
+  } else {
+    *dt = temp;
+  }
 }
 
 void ntpUpdate(void)
@@ -106,5 +125,24 @@ void ntpUpdate(void)
     waitingNtpResponse = true;
     ntpUpdateTimeout = 0;
   }
+}
+
+void ntpResponse(void)
+{
+  udp.read(packetBuffer, NTP_PACKET_SIZE);
+
+  unsigned long highWord = word(packetBuffer[40], packetBuffer[41]);
+  unsigned long lowWord = word(packetBuffer[42], packetBuffer[43]);
+  unsigned long secsSince1900 = highWord << 16 | lowWord;
+
+  const unsigned long seventyYears = 2208988800UL;
+  unsigned long epoch = secsSince1900 - seventyYears;
+  
+#ifdef SERIAL_DEBUG  
+  Serial.print("Unix time = ");
+  Serial.println(epoch);
+#endif
+
+  current_time = epoch;
 }
 

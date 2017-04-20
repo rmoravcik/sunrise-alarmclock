@@ -2,6 +2,7 @@
 #define PAGE_NTPSETTINGS
 
 #include "config.h"
+#include "helpers.h"
 #include "ntp.h"
 
 #include "common.h"

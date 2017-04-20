@@ -2,6 +2,7 @@
 #define PAGE_NETWORKCONFIGURATION
 
 #include "config.h"
+#include "helpers.h"
 #include "common.h"
 
 const char PAGE_NetworkConfiguration[] PROGMEM = R"=====(

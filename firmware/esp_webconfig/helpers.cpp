@@ -12,7 +12,7 @@ bool checkRange(String Value)
   }
 }
 
-String getMacAddress()
+String getMacAddress(void)
 {
   uint8_t mac[6];
   char macStr[18] = { 0 };

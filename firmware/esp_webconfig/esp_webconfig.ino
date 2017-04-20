@@ -1,10 +1,10 @@
 #include <ESP8266WiFi.h>
+#include <ESP8266HTTPUpdateServer.h>
 #include <ESP8266mDNS.h>
 #include <WiFiClient.h>
 #include <Ticker.h>
 #include <EEPROM.h>
 #include <WiFiUdp.h>
-#include "helpers.h"
 
 #include "Page_Root.h"
 #include "Page_Configuration.h"
@@ -15,9 +15,11 @@
 #include "Page_NetworkConfiguration.h"
 
 #include "config.h"
+#include "helpers.h"
 #include "common.h"
 
 ESP8266WebServer server(80);
+ESP8266HTTPUpdateServer updater;
 DNSServer dns;
 WiFiUDP udp;
 Ticker tkSecond;
@@ -28,6 +30,7 @@ bool mdnsResponseSent = false;
 void Tick()
 {
   connectionTimeout++;
+  current_time++;
 
   if (config.ntpUpdateTime > 0) {
     ntpUpdateTimeout++;  
@@ -113,6 +116,7 @@ void setup(void)
     }
   );
 
+  updater.setup(&server);
   server.begin();
 
   tkSecond.attach(1, Tick);
@@ -123,16 +127,13 @@ void setup(void)
 void loop(void)
 {
   if (waitingNtpResponse) {
-    int cb = udp.parsePacket();
-    if (!cb) {
-    } else {
-      Serial.print("packet received, length=");
-      Serial.println(cb);
+    if (udp.parsePacket()) {
+      ntpResponse();
     }
   }
 
   if (configMode) {
-    if (connectionTimeout > 30) {
+    if (connectionTimeout >= 30) {
 #ifdef SERIAL_DEBUG
       Serial.println("Scanning available networks");
 #endif
@@ -145,7 +146,7 @@ void loop(void)
     
     dns.processNextRequest();
   } else {
-    if (connectionTimeout > 30) {
+    if (connectionTimeout >= 30) {
 #ifdef SERIAL_DEBUG
       Serial.println("Connection timeout");
 #endif
@@ -167,7 +168,7 @@ void loop(void)
           ntpUpdate();
       }
 
-      if (ntpUpdateTimeout > config.ntpUpdateTime * 60) {
+      if (ntpUpdateTimeout >= config.ntpUpdateTime * 60) {
         ntpUpdate();
       }
 
@@ -177,3 +178,4 @@ void loop(void)
 
   server.handleClient();
 }
+

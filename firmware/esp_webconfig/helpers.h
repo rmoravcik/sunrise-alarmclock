@@ -3,7 +3,7 @@
 
 bool checkRange(String Value);
 
-String getMacAddress();
+String getMacAddress(void);
 
 String urlDecode(String input);
 
