@@ -70,4 +70,3 @@ String IPAddressToString(IPAddress address)
   res += String(((address >> 8 * 3)) & 0xFF);
   return res;
 }
-

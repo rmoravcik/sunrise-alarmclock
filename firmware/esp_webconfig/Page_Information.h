@@ -84,7 +84,7 @@ void send_information_values_html()
   String second = "";
   String day = "";
   String month = "";
-  DateTime dateTime;
+  DateTime localTime;
 
   if (WiFi.status() == 0)
     state = "Nečinný";
@@ -101,36 +101,36 @@ void send_information_values_html()
   else if (WiFi.status() == 6)
     state = "Odpojený";
 
-  LocalTime(current_time, &dateTime);
+  LocalTime(utcTime, &localTime);
 
-  if (dateTime.hour < 10) {
-    hour = "0" + (String) dateTime.hour;
+  if (localTime.hour < 10) {
+    hour = "0" + (String) localTime.hour;
   } else {
-    hour = (String) dateTime.hour;
+    hour = (String) localTime.hour;
   }
 
-  if (dateTime.minute < 10) {
-    minute = "0" + (String) dateTime.minute;
+  if (localTime.minute < 10) {
+    minute = "0" + (String) localTime.minute;
   } else {
-    minute = (String) dateTime.minute;
+    minute = (String) localTime.minute;
   }
 
-  if (dateTime.second < 10) {
-    second = "0" + (String) dateTime.second;
+  if (localTime.second < 10) {
+    second = "0" + (String) localTime.second;
   } else {
-    second = (String) dateTime.second;
+    second = (String) localTime.second;
   }
 
-  if (dateTime.day < 10) {
-    day = "0" + (String) dateTime.day;
+  if (localTime.day < 10) {
+    day = "0" + (String) localTime.day;
   } else {
-    day = (String) dateTime.day;
+    day = (String) localTime.day;
   }
 
-  if (dateTime.month < 10) {
-    month = "0" + (String) dateTime.month;
+  if (localTime.month < 10) {
+    month = "0" + (String) localTime.month;
   } else {
-    month = (String) dateTime.month;
+    month = (String) localTime.month;
   }
 
   values += "x_connectionstate|" + state + "|div\n";
@@ -148,7 +148,7 @@ void send_information_values_html()
             (String) WiFi.subnetMask()[3] + "|div\n";
   values += "x_mac|" + getMacAddress() + "|div\n";
   values += "x_ntp|" + hour + ":" + minute + ":" + second + " " +
-            day + "." + month + "." + (String) dateTime.year + "|div\n";
+            day + "." + month + "." + (String) localTime.year + "|div\n";
   server.send(200, "text/plain", values);
 }
 

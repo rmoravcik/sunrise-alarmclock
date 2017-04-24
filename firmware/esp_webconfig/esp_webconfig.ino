@@ -26,33 +26,31 @@ Ticker tkSecond;
 
 int connectionTimeout = 0;
 bool mdnsResponseSent = false;
+bool summerTime = false;
 
 void Tick()
 {
   connectionTimeout++;
-  current_time++;
+  utcTime++;
 
   if (config.ntpUpdateTime > 0) {
-    ntpUpdateTimeout++;  
+    ntpUpdateTimeout++;
   }
-  
-#if 0
-  strDateTime tempDateTime;
-  AdminTimeOutCounter++;
-  cNTP_Update++;
-  UnixTimestamp++;
 
-  ConvertUnixTimeStamp(UnixTimestamp + (config.timezone * 360), &tempDateTime);
+  if (config.daylight) {
+    DateTime tmp;
+    bool summer = false;
+    long localTime = utcTime + (config.timezone * 360);
 
-  if (config.daylight)
-    if (summertime(tempDateTime.year, tempDateTime.month, tempDateTime.day, tempDateTime.hour, 0)) {
-      ConvertUnixTimeStamp(UnixTimestamp + (config.timezone * 360) + 3600, &DateTime);
-    } else {
-      DateTime = tempDateTime;
-  } else {
-    DateTime = tempDateTime;
+    EpochToDateTime(localTime, &tmp);
+    if (IsSummerTime(tmp.year, tmp.month, tmp.day, tmp.hour, config.timezone)) {
+        summer = true;
+    }
+    if (summerTime != summer) {
+      // FIXME: update time
+      summerTime = !summerTime;
+    }
   }
-#endif
 }
 
 void setup(void)
@@ -62,7 +60,7 @@ void setup(void)
   delay(500);
 
   connectionTimeout = 0;
-  
+
   if (!ReadConfig()) {
     WriteDefaultConfig();
     ConfigureConfigMode();
@@ -141,9 +139,9 @@ void loop(void)
         ConfigureNetwork();
       }
 
-      connectionTimeout = 0;    
+      connectionTimeout = 0;
     }
-    
+
     dns.processNextRequest();
   } else {
     if (connectionTimeout >= 30) {
@@ -152,7 +150,7 @@ void loop(void)
 #endif
       ConfigureConfigMode();
 
-      connectionTimeout = 0;    
+      connectionTimeout = 0;
       mdnsResponseSent = false;
     }
 
@@ -163,7 +161,7 @@ void loop(void)
 #endif
           MDNS.begin(config.hostname.c_str());
           MDNS.addService("http", "tcp", 80);
-          mdnsResponseSent = true;      
+          mdnsResponseSent = true;
 
           ntpUpdate();
       }
@@ -178,4 +176,3 @@ void loop(void)
 
   server.handleClient();
 }
-

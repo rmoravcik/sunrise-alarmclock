@@ -2,7 +2,7 @@
 #include "common.h"
 #include "ntp.h"
 
-unsigned long current_time;
+unsigned long utcTime;
 
 const int NTP_PACKET_SIZE = 48;
 byte packetBuffer[NTP_PACKET_SIZE];
@@ -15,26 +15,26 @@ static const uint8_t monthDays[] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30,
 
 #define LEAP_YEAR(Y) (((1970 + Y) > 0) && !((1970 + Y) % 4) && (((1970 + Y) % 100) || !((1970 + Y) % 400)))
 
-static boolean IsSummerTime(int year, byte month, byte day, byte hour, byte tzHours)
+bool IsSummerTime(int year, byte month, byte day, byte hour, long tz)
 {
   if (month < 3 || month > 10)
     return false;
   if (month > 3 && month < 10)
     return true;
-  if (((month == 3) && ((hour + 24 * day) >= (1 + tzHours + 24 * (31 - (5 * year / 4 + 4) % 7)))) ||
-      ((month == 10) && ((hour + 24 * day) < (1 + tzHours + 24 * (31 - (5 * year / 4 + 1) % 7)))))
+  if (((month == 3) && ((hour + 24 * day) >= (1 + (tz / 10.0) + 24 * (31 - (5 * year / 4 + 4) % 7)))) ||
+      ((month == 10) && ((hour + 24 * day) < (1 + (tz / 10.0) + 24 * (31 - (5 * year / 4 + 1) % 7)))))
     return true;
   else
     return false;
 }
 
-static void EpochToDateTime(unsigned long epoch, struct DateTime *dt)
+void EpochToDateTime(unsigned long epoch, struct DateTime *dt)
 {
   uint8_t year;
   uint8_t month, monthLength;
   uint32_t time;
   unsigned long days;
-  
+
   time = (uint32_t) epoch;
   dt->second = time % 60;
   time /= 60;    // now it is minutes
@@ -90,11 +90,11 @@ void LocalTime(unsigned long epoch, struct DateTime *dt)
   EpochToDateTime(epoch + (config.timezone * 360) , &temp);
 
   if (config.daylight) {
-    if (IsSummerTime(temp.year, temp.month, temp.day, temp.hour, 0)) {
+    if (IsSummerTime(temp.year, temp.month, temp.day, temp.hour, config.timezone)) {
       EpochToDateTime(epoch + (config.timezone * 360) + 3600, dt);
     } else {
       *dt = temp;
-    }    
+    }
   } else {
     *dt = temp;
   }
@@ -137,12 +137,11 @@ void ntpResponse(void)
 
   const unsigned long seventyYears = 2208988800UL;
   unsigned long epoch = secsSince1900 - seventyYears;
-  
-#ifdef SERIAL_DEBUG  
+
+#ifdef SERIAL_DEBUG
   Serial.print("Unix time = ");
   Serial.println(epoch);
 #endif
 
-  current_time = epoch;
+  utcTime = epoch;
 }
-

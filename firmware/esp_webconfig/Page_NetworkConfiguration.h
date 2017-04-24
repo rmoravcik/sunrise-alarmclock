@@ -83,12 +83,6 @@ const char PAGE_NetworkConfiguration[] PROGMEM = R"=====(
   </script>
 )=====";
 
-const char PAGE_WaitAndReload[] PROGMEM = R"=====(
-  <meta http-equiv="refresh" content="5; URL=config.html">
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-  Čekejte prosím.... Konfiguruji a restartuji.
-)=====";
-
 void send_network_configuration_html()
 {
   if (server.args() > 0)
@@ -152,7 +146,11 @@ void send_network_configuration_html()
         config.dhcpEnabled = true;
     }
 
-    server.send(200, "text/html", reinterpret_cast<const __FlashStringHelper *>(PAGE_WaitAndReload));
+    String s = "<meta http-equiv='refresh' content='15; URL=http://" + config.hostname + ".local'>";
+    s += "<meta http-equiv='Content-Type' content='text/html; charset=utf-8'/>";
+    s += "Čekejte prosím. Restartuji...";
+
+    server.send(200, "text/html", s);
 
     WriteConfig();
     ConfigureNetwork();
