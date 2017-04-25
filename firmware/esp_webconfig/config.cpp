@@ -261,10 +261,31 @@ void SendGetStatusCommand(void)
   flushSerial();
   Serial.print("STAT?\n");
 
-  Serial.setTimeout(10000);
+  Serial.setTimeout(100);
   response = Serial.readString();
 
-  Serial.println(response);
+  if (response.startsWith("STAT+")) {
+    response.remove(0, 5);
+
+    for (int i = 0; i < 7; i++) {
+      int hour = response.substring(0, 2).toInt();
+      int minute = response.substring(3, 5).toInt();
+      int conf_hour = config.alarm[i].hour;
+      int conf_minute = config.alarm[i].minute;
+
+      if (!config.alarm[i].enabled) {
+        conf_hour = conf_minute = 99;
+      }
+
+      if ((conf_hour != hour) || (conf_minute != minute)) {
+        SendSetAlarmCommand(i);
+      }
+
+      if (i < 6) {
+        response.remove(0, 6);
+      }
+    }
+  }
 }
 
 void SendSetTimeCommand(void)
