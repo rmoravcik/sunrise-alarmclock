@@ -25,6 +25,7 @@ WiFiUDP udp;
 Ticker tkSecond;
 
 int connectionTimeout = 0;
+int ntpUpdateRetryCount = 0;
 bool mdnsResponseSent = false;
 int summerTime = -1;
 
@@ -32,6 +33,20 @@ void Tick()
 {
   connectionTimeout++;
   utcTime++;
+
+  if (waitingNtpResponse) {
+    if (ntpUpdateTimeout > 10) {
+#ifdef SERIAL_DEBUG
+          Serial.println("DEBUG: Timeout waiting for NTP response");
+#endif
+      waitingNtpResponse = false;
+      ntpUpdateRetryCount++;
+
+      if (ntpUpdateRetryCount < 3) {
+        ntpUpdateTimeout = config.ntpUpdateTime * 60;
+      }
+    }
+  }
 
   if (config.ntpUpdateTime > 0) {
     ntpUpdateTimeout++;
@@ -67,7 +82,7 @@ void Tick()
 void setup(void)
 {
   EEPROM.begin(512);
-  Serial.begin(115200);
+  Serial.begin(38400);
   delay(500);
 
   connectionTimeout = 0;
@@ -133,12 +148,14 @@ void setup(void)
   udp.begin(2390);
 
   SendPingCommand();
+  SendGetStatusCommand();
 }
 
 void loop(void)
 {
   if (waitingNtpResponse) {
     if (udp.parsePacket()) {
+      ntpUpdateRetryCount = 0;
       ntpResponse();
       SendSetTimeCommand();
     }
@@ -147,7 +164,7 @@ void loop(void)
   if (configMode) {
     if (connectionTimeout >= 30) {
 #ifdef SERIAL_DEBUG
-      Serial.println("Scanning available networks");
+      Serial.println("DEBUG: Scanning available networks");
 #endif
       if (NetworkAvailable()) {
         ConfigureNetwork();
@@ -160,7 +177,7 @@ void loop(void)
   } else {
     if (connectionTimeout >= 30) {
 #ifdef SERIAL_DEBUG
-      Serial.println("Connection timeout");
+      Serial.println("DEBUG: Connection timeout");
 #endif
       ConfigureConfigMode();
 
@@ -171,7 +188,7 @@ void loop(void)
     if (WiFi.status() == WL_CONNECTED) {
       if (!mdnsResponseSent) {
 #ifdef SERIAL_DEBUG
-          Serial.println("Sending mDNS response");
+          Serial.println("DEBUG: Sending mDNS response");
 #endif
           MDNS.begin(config.hostname.c_str());
           MDNS.addService("http", "tcp", 80);

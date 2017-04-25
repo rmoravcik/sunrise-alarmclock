@@ -104,7 +104,7 @@ void ntpUpdate(void)
 {
   if (config.ntpUpdateTime > 0) {
 #ifdef SERIAL_DEBUG  
-    Serial.print("Sending NTP request to ");
+    Serial.print("DEBUG: Sending NTP request to ");
     Serial.println(config.ntpServerName.c_str());
 #endif
 
@@ -129,6 +129,8 @@ void ntpUpdate(void)
 
 void ntpResponse(void)
 {
+  waitingNtpResponse = false;
+  
   udp.read(packetBuffer, NTP_PACKET_SIZE);
 
   unsigned long highWord = word(packetBuffer[40], packetBuffer[41]);
@@ -139,7 +141,7 @@ void ntpResponse(void)
   unsigned long epoch = secsSince1900 - seventyYears;
 
 #ifdef SERIAL_DEBUG
-  Serial.print("Unix time = ");
+  Serial.print("DEBUG: Unix time = ");
   Serial.println(epoch);
 #endif
 

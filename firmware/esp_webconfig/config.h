@@ -50,6 +50,7 @@ void ConfigureNetwork(void);
 bool NetworkAvailable(void);
 
 void SendPingCommand(void);
+void SendGetStatusCommand(void);
 void SendSetTimeCommand(void);
 void SendSetAlarmCommand(int id);
 

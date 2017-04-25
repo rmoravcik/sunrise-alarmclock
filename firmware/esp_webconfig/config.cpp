@@ -189,7 +189,7 @@ bool ReadConfig(void)
 void ConfigureConfigMode(void)
 {
 #ifdef SERIAL_DEBUG
-  Serial.println("Switching to config mode");
+  Serial.println("DEBUG: Switching to config mode");
 #endif
   
   WiFi.mode(WIFI_AP);
@@ -204,7 +204,7 @@ void ConfigureConfigMode(void)
 void ConfigureNetwork(void)
 {
 #ifdef SERIAL_DEBUG
-  Serial.print("Connecting to network ");
+  Serial.print("DEBUG: Connecting to network ");
   Serial.println(config.ssid.c_str());
 #endif
   
@@ -241,9 +241,30 @@ bool NetworkAvailable(void)
   return false;
 }
 
+static void flushSerial(void)
+{
+  while (Serial.available() > 0) {
+    int tmp = Serial.read();
+  }
+}
+
 void SendPingCommand(void)
 {
+  flushSerial();
   Serial.print("PING?\n");
+}
+
+void SendGetStatusCommand(void)
+{
+  String response = "";
+  
+  flushSerial();
+  Serial.print("STAT?\n");
+
+  Serial.setTimeout(10000);
+  response = Serial.readString();
+
+  Serial.println(response);
 }
 
 void SendSetTimeCommand(void)
@@ -328,6 +349,7 @@ void SendSetAlarmCommand(int id)
     values += "99:99";
   }
 
+  flushSerial();
   Serial.print(values);
   Serial.print("\n");
 }
