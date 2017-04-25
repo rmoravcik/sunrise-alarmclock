@@ -1,6 +1,6 @@
 /*
  *  sunrise-alarmclock
- *  Copyright (C) 2016 Roman Moravcik
+ *  Copyright (C) 2016,2017 Roman Moravcik
  *
  *  Based on ssd1306xled8x16.c
  *
