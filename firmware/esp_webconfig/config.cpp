@@ -98,7 +98,7 @@ void WriteConfig(void)
   for (int i = 0; i < 7; i++) {
     EEPROM.write(153 + 3 * i, config.alarm[i].enabled);
     EEPROM.write(154 + 3 * i, config.alarm[i].hour);
-    EEPROM.write(155 + 3 * i, config.alarm[i].min);
+    EEPROM.write(155 + 3 * i, config.alarm[i].minute);
   }
 
   EEPROM.commit();
@@ -134,7 +134,7 @@ void WriteDefaultConfig(void)
   for (int i = 0; i < 7; i++) {
     config.alarm[i].enabled = false;
     config.alarm[i].hour = 0;
-    config.alarm[i].min = 0;
+    config.alarm[i].minute = 0;
   }
 
   WriteConfig();
@@ -171,12 +171,12 @@ bool ReadConfig(void)
     for (int i = 0; i < 7; i++) {
       config.alarm[i].enabled = EEPROM.read(153 + 3 * i);
       config.alarm[i].hour = EEPROM.read(154 + 3 * i);
-      config.alarm[i].min = EEPROM.read(155 + 3 * i);
+      config.alarm[i].minute = EEPROM.read(155 + 3 * i);
 
-      if ((config.alarm[i].hour > 23) || (config.alarm[i].min > 59)) {
+      if ((config.alarm[i].hour > 23) || (config.alarm[i].minute > 59)) {
         config.alarm[i].enabled = false;
         config.alarm[i].hour = 0;
-        config.alarm[i].min = 0;
+        config.alarm[i].minute = 0;
       }
     }
 
@@ -299,10 +299,35 @@ void SendSetTimeCommand(void)
     values += "." + (String) localTime.year;
 
     Serial.print(values);
-    Serial.print("\n");     
-  }  
+    Serial.print("\n");
+  }
 }
 
-void SendSetTimeAlarms(void)
+void SendSetAlarmCommand(int id)
 {
+  String values = "";
+
+  // ALARM+F;HH:mm
+  values = "ALARM+" + (String) id + ";";
+
+  if (config.alarm[id].enabled) {
+    if (config.alarm[id].hour < 10) {
+      values += "0" + (String) config.alarm[id].hour;
+    } else {
+      values += (String) config.alarm[id].hour;
+    }
+
+    values += ":";
+
+    if (config.alarm[id].minute < 10) {
+      values += "0" + (String) config.alarm[id].minute;
+    } else {
+      values += (String) config.alarm[id].minute;
+    }    
+  } else {
+    values += "99:99";
+  }
+
+  Serial.print(values);
+  Serial.print("\n");
 }

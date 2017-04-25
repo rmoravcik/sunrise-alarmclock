@@ -14,7 +14,7 @@ extern bool configMode;
 struct Alarm {
   bool enabled;
   byte hour;
-  byte min;
+  byte minute;
 };
 
 struct Configuration {
@@ -51,7 +51,7 @@ bool NetworkAvailable(void);
 
 void SendPingCommand(void);
 void SendSetTimeCommand(void);
-void SendSetTimeAlarms(void);
+void SendSetAlarmCommand(int id);
 
 #endif
 
