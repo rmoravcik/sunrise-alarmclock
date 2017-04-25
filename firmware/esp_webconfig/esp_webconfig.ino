@@ -26,7 +26,7 @@ Ticker tkSecond;
 
 int connectionTimeout = 0;
 bool mdnsResponseSent = false;
-bool summerTime = false;
+int summerTime = -1;
 
 void Tick()
 {
@@ -38,17 +38,28 @@ void Tick()
   }
 
   if (config.daylight) {
-    DateTime tmp;
-    bool summer = false;
-    long localTime = utcTime + (config.timezone * 360);
+    if (IS_EPOCH_VALID(utcTime)) {
+      DateTime tmp;
+      int summer = 0;
+      long localTime = utcTime + (config.timezone * 360);
 
-    EpochToDateTime(localTime, &tmp);
-    if (IsSummerTime(tmp.year, tmp.month, tmp.day, tmp.hour, config.timezone)) {
-        summer = true;
-    }
-    if (summerTime != summer) {
-      // FIXME: update time
-      summerTime = !summerTime;
+      EpochToDateTime(localTime, &tmp);
+      if (IsSummerTime(tmp.year, tmp.month, tmp.day, tmp.hour, config.timezone)) {
+          summer = 1;
+      }
+
+      if (summerTime == -1) {
+        if (summer) {
+          summerTime = 1;
+        } else {
+          summerTime = 0;
+        }
+      } else {
+        if (summerTime != summer) {
+          SendSetTimeCommand();
+          summerTime = !summerTime;
+        }        
+      }
     }
   }
 }
@@ -120,6 +131,8 @@ void setup(void)
   tkSecond.attach(1, Tick);
 
   udp.begin(2390);
+
+  SendPingCommand();
 }
 
 void loop(void)
@@ -127,6 +140,7 @@ void loop(void)
   if (waitingNtpResponse) {
     if (udp.parsePacket()) {
       ntpResponse();
+      SendSetTimeCommand();
     }
   }
 

@@ -49,5 +49,9 @@ void ConfigureNetwork(void);
 
 bool NetworkAvailable(void);
 
+void SendPingCommand(void);
+void SendSetTimeCommand(void);
+void SendSetTimeAlarms(void);
+
 #endif
 

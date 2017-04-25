@@ -1,5 +1,6 @@
 #include <EEPROM.h>
 
+#include "ntp.h"
 #include "common.h"
 #include "config.h"
 
@@ -240,3 +241,68 @@ bool NetworkAvailable(void)
   return false;
 }
 
+void SendPingCommand(void)
+{
+  Serial.print("PING?\n");
+}
+
+void SendSetTimeCommand(void)
+{
+  // check if we have a valid timestamp
+  if (IS_EPOCH_VALID(utcTime)) {
+    String values = "";
+    DateTime localTime;
+
+    LocalTime(utcTime, &localTime);
+
+    // DATE+HH:mm:ss;F;dd.MM.yyyy
+    values = "DATE+";
+
+    if (localTime.hour < 10) {
+      values += "0" + (String) localTime.hour;
+    } else {
+      values += (String) localTime.hour;
+    }
+
+    values += ":";
+
+    if (localTime.minute < 10) {
+      values += "0" + (String) localTime.minute;
+    } else {
+      values += (String) localTime.minute;
+    }
+
+    values += ":";
+
+    if (localTime.second < 10) {
+      values += "0" + (String) localTime.second;
+    } else {
+      values += (String) localTime.second;
+    }
+
+    values += ";" + (String) localTime.wday + ";";
+
+    if (localTime.day < 10) {
+      values += "0" + (String) localTime.day;
+    } else {
+      values += (String) localTime.day;
+    }
+
+    values += ".";
+
+    if (localTime.month < 10) {
+      values += "0" + (String) localTime.month;
+    } else {
+      values += (String) localTime.month;
+    }
+
+    values += "." + (String) localTime.year;
+
+    Serial.print(values);
+    Serial.print("\n");     
+  }  
+}
+
+void SendSetTimeAlarms(void)
+{
+}

@@ -18,6 +18,8 @@ extern unsigned long utcTime;
 extern int ntpUpdateTimeout;
 extern bool waitingNtpResponse;
 
+#define IS_EPOCH_VALID(x)  ((x > 1483228800) ? true : false)
+
 bool IsSummerTime(int year, byte month, byte day, byte hour, long tz);
 
 void EpochToDateTime(unsigned long epoch, struct DateTime *dt);
