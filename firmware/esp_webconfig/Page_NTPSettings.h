@@ -102,9 +102,9 @@ const char PAGE_NTPConfiguration[] PROGMEM = R"=====(
   <script>
     window.onload = function ()
     {
-      load("style.css","css", function() 
+      load("style.css","css", function()
       {
-        load("microajax.js","js", function() 
+        load("microajax.js","js", function()
         {
           setValues("/admin/ntpvalues");
         });
@@ -147,4 +147,3 @@ void send_NTP_configuration_values_html()
 }
 
 #endif
-

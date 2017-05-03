@@ -213,7 +213,7 @@ void ConfigureConfigMode(void)
 #ifdef SERIAL_DEBUG
   Serial.println("DEBUG: Switching to config mode");
 #endif
-  
+
   WiFi.mode(WIFI_AP);
   WiFi.softAPConfig(adminIpAddress, adminIpAddress, adiminNetmask);
   WiFi.softAP(DEFAULT_SSID, DEFAULT_PASSWORD);
@@ -229,7 +229,7 @@ void ConfigureNetwork(void)
   Serial.print("DEBUG: Connecting to network ");
   Serial.println(config.ssid.c_str());
 #endif
-  
+
   dns.stop();
   WiFi.mode(WIFI_STA);
   WiFi.begin(config.ssid.c_str(), config.password.c_str());
@@ -279,7 +279,7 @@ void SendPingCommand(void)
 void SendGetStatusCommand(void)
 {
   String response = "";
-  
+
   flushSerial();
   Serial.print("STAT?\n");
 
@@ -387,7 +387,7 @@ void SendSetAlarmCommand(int id)
       values += "0" + (String) config.alarm[id].minute;
     } else {
       values += (String) config.alarm[id].minute;
-    }    
+    }
   } else {
     values += "99:99";
   }

@@ -48,9 +48,9 @@ const char PAGE_ConfigurationPage[] PROGMEM = R"=====(
   <script>
     window.onload = function ()
     {
-      load("style.css","css", function() 
+      load("style.css","css", function()
       {
-        load("microajax.js","js", function() 
+        load("microajax.js","js", function()
         {
           // Do something after load...
         });

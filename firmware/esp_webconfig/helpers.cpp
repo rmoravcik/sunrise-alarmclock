@@ -34,6 +34,22 @@ bool checkRange(String Value)
   }
 }
 
+bool checkTime(String Value)
+{
+  int hour = Value.substring(0,2).toInt();
+  int minute = Value.substring(3,5).toInt();
+
+  if (hour < 0 || hour > 23) {
+    return false;
+  }
+
+  if (minute < 0 || minute > 59) {
+    return false;
+  }
+
+  return true;
+}
+
 String getMacAddress(void)
 {
   uint8_t mac[6];

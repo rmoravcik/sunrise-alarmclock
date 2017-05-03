@@ -24,6 +24,7 @@
 #define HELPERS_H
 
 bool checkRange(String Value);
+bool checkTime(String Value);
 
 String getMacAddress(void);
 

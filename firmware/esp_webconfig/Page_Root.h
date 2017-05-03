@@ -26,6 +26,7 @@
 #include "WString.h"
 
 #include "config.h"
+#include "helpers.h"
 #include "common.h"
 
 const char PAGE_root[] PROGMEM = R"=====(
@@ -88,7 +89,7 @@ const char PAGE_root[] PROGMEM = R"=====(
       {
         load("microajax.js","js", function()
         {
-          setValues("/admin/rootvalues");  //-- this function calls the function on the ESP
+          setValues("/admin/rootvalues");
         });
       });
     }
@@ -121,8 +122,10 @@ void send_root_html()
     for (uint8_t i = 0; i < server.args(); i++) {  // Iterate through the fields
       if (server.argName(i) == "day1")
       {
-        config.alarm[0].hour = server.arg(i).substring(0,2).toInt();
-        config.alarm[0].minute = server.arg(i).substring(3,5).toInt();
+        if (checkTime(server.arg(i))) {
+          config.alarm[0].hour = server.arg(i).substring(0,2).toInt();
+          config.alarm[0].minute = server.arg(i).substring(3,5).toInt();
+        }
       }
       if (server.argName(i) == "day1_enable")
       {
@@ -130,8 +133,10 @@ void send_root_html()
       }
       if (server.argName(i) == "day2")
       {
-        config.alarm[1].hour = server.arg(i).substring(0,2).toInt();
-        config.alarm[1].minute = server.arg(i).substring(3,5).toInt();
+        if (checkTime(server.arg(i))) {
+          config.alarm[1].hour = server.arg(i).substring(0,2).toInt();
+          config.alarm[1].minute = server.arg(i).substring(3,5).toInt();
+        }
       }
       if (server.argName(i) == "day2_enable")
       {
@@ -139,8 +144,10 @@ void send_root_html()
       }
       if (server.argName(i) == "day3")
       {
-        config.alarm[2].hour = server.arg(i).substring(0,2).toInt();
-        config.alarm[2].minute = server.arg(i).substring(3,5).toInt();
+        if (checkTime(server.arg(i))) {
+          config.alarm[2].hour = server.arg(i).substring(0,2).toInt();
+          config.alarm[2].minute = server.arg(i).substring(3,5).toInt();
+        }
       }
       if (server.argName(i) == "day3_enable")
       {
@@ -148,8 +155,10 @@ void send_root_html()
       }
       if (server.argName(i) == "day4")
       {
-        config.alarm[3].hour = server.arg(i).substring(0,2).toInt();
-        config.alarm[3].minute = server.arg(i).substring(3,5).toInt();
+        if (checkTime(server.arg(i))) {
+          config.alarm[3].hour = server.arg(i).substring(0,2).toInt();
+          config.alarm[3].minute = server.arg(i).substring(3,5).toInt();
+        }
       }
       if (server.argName(i) == "day4_enable")
       {
@@ -157,8 +166,10 @@ void send_root_html()
       }
       if (server.argName(i) == "day5")
       {
-        config.alarm[4].hour = server.arg(i).substring(0,2).toInt();
-        config.alarm[4].minute = server.arg(i).substring(3,5).toInt();
+        if (checkTime(server.arg(i))) {
+          config.alarm[4].hour = server.arg(i).substring(0,2).toInt();
+          config.alarm[4].minute = server.arg(i).substring(3,5).toInt();
+        }
       }
       if (server.argName(i) == "day5_enable")
       {
@@ -166,8 +177,10 @@ void send_root_html()
       }
       if (server.argName(i) == "day6")
       {
-        config.alarm[5].hour = server.arg(i).substring(0,2).toInt();
-        config.alarm[5].minute = server.arg(i).substring(3,5).toInt();
+        if (checkTime(server.arg(i))) {
+          config.alarm[5].hour = server.arg(i).substring(0,2).toInt();
+          config.alarm[5].minute = server.arg(i).substring(3,5).toInt();
+        }
       }
       if (server.argName(i) == "day6_enable")
       {
@@ -175,8 +188,10 @@ void send_root_html()
       }
       if (server.argName(i) == "day7")
       {
-        config.alarm[6].hour = server.arg(i).substring(0,2).toInt();
-        config.alarm[6].minute = server.arg(i).substring(3,5).toInt();
+        if (checkTime(server.arg(i))) {
+          config.alarm[6].hour = server.arg(i).substring(0,2).toInt();
+          config.alarm[6].minute = server.arg(i).substring(3,5).toInt();
+        }
       }
       if (server.argName(i) == "day7_enable")
       {
@@ -187,7 +202,7 @@ void send_root_html()
     WriteConfig();
 
     for (int i = 0; i < 7; i++) {
-      SendSetAlarmCommand(i);    
+      SendSetAlarmCommand(i);
     }
   }
 

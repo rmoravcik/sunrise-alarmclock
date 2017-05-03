@@ -88,13 +88,13 @@ const char PAGE_NetworkConfiguration[] PROGMEM = R"=====(
     }
     function selssid(value)
     {
-      document.getElementById("ssid").value = value; 
+      document.getElementById("ssid").value = value;
     }
     window.onload = function ()
     {
-      load("style.css","css", function() 
+      load("style.css","css", function()
       {
-        load("microajax.js","js", function() 
+        load("microajax.js","js", function()
         {
           setValues("/admin/networkvalues");
           setTimeout(GetState,3000);
@@ -112,7 +112,7 @@ void send_network_configuration_html()
     String temp = "";
 
     config.dhcpEnabled = false;
-    
+
     for (uint8_t i = 0; i < server.args(); i++) {
       if (server.argName(i) == "hostname")
         config.hostname = urlDecode(server.arg(i));
@@ -243,4 +243,3 @@ void send_connection_state_values_html()
 }
 
 #endif
-

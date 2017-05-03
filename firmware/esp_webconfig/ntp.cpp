@@ -128,7 +128,7 @@ void LocalTime(unsigned long epoch, struct DateTime *dt)
 void ntpUpdate(void)
 {
   if (config.ntpUpdateTime > 0) {
-#ifdef SERIAL_DEBUG  
+#ifdef SERIAL_DEBUG
     Serial.print("DEBUG: Sending NTP request to ");
     Serial.println(config.ntpServerName.c_str());
 #endif
@@ -155,7 +155,7 @@ void ntpUpdate(void)
 void ntpResponse(void)
 {
   waitingNtpResponse = false;
-  
+
   udp.read(packetBuffer, NTP_PACKET_SIZE);
 
   unsigned long highWord = word(packetBuffer[40], packetBuffer[41]);

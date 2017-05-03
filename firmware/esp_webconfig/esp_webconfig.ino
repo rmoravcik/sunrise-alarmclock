@@ -95,7 +95,7 @@ void Tick()
         if (summerTime != summer) {
           SendSetTimeCommand();
           summerTime = !summerTime;
-        }        
+        }
       }
     }
   }
@@ -158,7 +158,7 @@ void setup(void)
       server.send(302, "text/plain", "");
       server.client().stop();
     } else {
-      server.send(400, "text/html", "Page not Found");}    
+      server.send(400, "text/html", "Page not Found");}
     }
   );
 

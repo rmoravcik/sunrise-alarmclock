@@ -77,4 +77,3 @@ void SendSetTimeCommand(void);
 void SendSetAlarmCommand(int id);
 
 #endif
-
