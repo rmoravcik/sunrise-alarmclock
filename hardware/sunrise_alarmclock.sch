@@ -13457,12 +13457,12 @@ Source: http://www.st.com/stonline/products/literature/ds/7194/ld1117axx.pdf</de
 <part name="GND4" library="supply1" deviceset="GND" device=""/>
 <part name="C8" library="rcl" deviceset="C-EU" device="C1206K" value="100n"/>
 <part name="GND7" library="supply1" deviceset="GND" device=""/>
-<part name="R3" library="rcl" deviceset="R-EU_" device="M1206" value="18k"/>
-<part name="R5" library="rcl" deviceset="R-EU_" device="M1206" value="18k"/>
-<part name="R7" library="rcl" deviceset="R-EU_" device="M1206" value="18k"/>
-<part name="R4" library="rcl" deviceset="R-EU_" device="M1206" value="33k"/>
-<part name="R6" library="rcl" deviceset="R-EU_" device="M1206" value="33k"/>
-<part name="R8" library="rcl" deviceset="R-EU_" device="M1206" value="33k"/>
+<part name="R3" library="rcl" deviceset="R-EU_" device="M1206" value="100R"/>
+<part name="R5" library="rcl" deviceset="R-EU_" device="M1206" value="100R"/>
+<part name="R7" library="rcl" deviceset="R-EU_" device="M1206" value="100R"/>
+<part name="R4" library="rcl" deviceset="R-EU_" device="M1206" value="NA"/>
+<part name="R6" library="rcl" deviceset="R-EU_" device="M1206" value="NA"/>
+<part name="R8" library="rcl" deviceset="R-EU_" device="M1206" value="NA"/>
 <part name="GND10" library="supply1" deviceset="GND" device=""/>
 <part name="GND11" library="supply1" deviceset="GND" device=""/>
 <part name="GND12" library="supply1" deviceset="GND" device=""/>
@@ -13480,6 +13480,7 @@ Source: http://www.st.com/stonline/products/literature/ds/7194/ld1117axx.pdf</de
 <sheets>
 <sheet>
 <plain>
+<text x="172.72" y="99.06" size="1.778" layer="91">Foto-resistor connected to PC1</text>
 </plain>
 <instances>
 <instance part="GND3" gate="1" x="40.64" y="99.06"/>
@@ -13929,6 +13930,12 @@ Source: http://www.st.com/stonline/products/literature/ds/7194/ld1117axx.pdf</de
 <wire x1="177.8" y1="71.12" x2="177.8" y2="68.58" width="0.1524" layer="91"/>
 <pinref part="JP5" gate="G$1" pin="1"/>
 <wire x1="177.8" y1="68.58" x2="193.04" y2="68.58" width="0.1524" layer="91"/>
+</segment>
+</net>
+<net name="N$22" class="0">
+<segment>
+<pinref part="IC1" gate="A" pin="PC1"/>
+<wire x1="165.1" y1="96.52" x2="180.34" y2="96.52" width="0.1524" layer="91"/>
 </segment>
 </net>
 </nets>
