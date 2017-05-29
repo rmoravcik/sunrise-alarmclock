@@ -105,7 +105,7 @@ void setup(void)
 {
   EEPROM.begin(512);
   Serial.begin(38400);
-  delay(500);
+  delay(2000);
 
   connectionTimeout = 0;
 
