@@ -457,7 +457,7 @@ int main(void)
     char buf[50];
 #endif
 
-    OSCCAL = 0x8f;
+    OSCCAL = 0x90;
 
     eeprom_init();
 
@@ -557,6 +557,6 @@ int main(void)
             status &= ~SET_DATE;
         }
 
-        _delay_ms(500);
+        _delay_ms(2);
     }
 }
