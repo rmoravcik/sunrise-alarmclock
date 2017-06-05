@@ -266,17 +266,28 @@ bool NetworkAvailable(void)
 static void flushSerial(void)
 {
   while (Serial.available() > 0) {
-    int tmp = Serial.read();
+    int __attribute__ ((unused)) tmp = Serial.read();
   }
 }
 
-void SendPingCommand(void)
+bool SendPingCommand(void)
 {
+  String response = "";
+
   flushSerial();
   Serial.print("PING?\n");
+
+  Serial.setTimeout(100);
+  response = Serial.readString();
+
+  if (response.startsWith("PONG+OK")) {
+    return true;
+  }
+
+  return false;
 }
 
-void SendGetStatusCommand(void)
+bool SendGetStatusCommand(void)
 {
   String response = "";
 
@@ -292,26 +303,32 @@ void SendGetStatusCommand(void)
     for (int i = 0; i < 7; i++) {
       int hour = response.substring(0, 2).toInt();
       int minute = response.substring(3, 5).toInt();
-      int conf_hour = config.alarm[i].hour;
-      int conf_minute = config.alarm[i].minute;
 
-      if (!config.alarm[i].enabled) {
-        conf_hour = conf_minute = 99;
-      }
-
-      if ((conf_hour != hour) || (conf_minute != minute)) {
-        SendSetAlarmCommand(i);
+      if ((hour == 99) && (minute == 99)) {
+        config.alarm[i].enabled = false;
+      } else {
+        config.alarm[i].enabled = true;
+        config.alarm[i].hour = hour;
+        config.alarm[i].minute = minute;
       }
 
       if (i < 6) {
         response.remove(0, 6);
       }
     }
+
+    WriteConfig();
+
+    return true;
   }
+
+  return false;
 }
 
-void SendSetTimeCommand(void)
+bool SendSetTimeCommand(void)
 {
+  String response = "";
+
   // check if we have a valid timestamp
   if (IS_EPOCH_VALID(utcTime)) {
     String values = "";
@@ -364,12 +381,22 @@ void SendSetTimeCommand(void)
 
     Serial.print(values);
     Serial.print("\n");
+
+    Serial.setTimeout(100);
+    response = Serial.readString();
+
+    if (response.startsWith("DATE+OK")) {
+      return true;
+    }  
   }
+
+  return false;
 }
 
-void SendSetAlarmCommand(int id)
+bool SendSetAlarmCommand(int id)
 {
   String values = "";
+  String response = "";
 
   // ALARM+F;HH:mm
   values = "ALARM+" + (String) id + ";";
@@ -395,4 +422,13 @@ void SendSetAlarmCommand(int id)
   flushSerial();
   Serial.print(values);
   Serial.print("\n");
+
+  Serial.setTimeout(100);
+  response = Serial.readString();
+
+  if (response.startsWith("ALARM+OK")) {
+    return true;
+  }  
+
+  return false;
 }

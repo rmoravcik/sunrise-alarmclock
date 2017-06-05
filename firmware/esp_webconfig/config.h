@@ -71,9 +71,9 @@ void ConfigureNetwork(void);
 
 bool NetworkAvailable(void);
 
-void SendPingCommand(void);
-void SendGetStatusCommand(void);
-void SendSetTimeCommand(void);
-void SendSetAlarmCommand(int id);
+bool SendPingCommand(void);
+bool SendGetStatusCommand(void);
+bool SendSetTimeCommand(void);
+bool SendSetAlarmCommand(int id);
 
 #endif

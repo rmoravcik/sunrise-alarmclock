@@ -101,6 +101,8 @@ void send_root_values_html()
 {
   String values ="";
 
+  SendGetStatusCommand();
+
   for (int i = 0; i < 7; i++) {
     char time_buf[6];
     sprintf(time_buf, "%02d:%02d", config.alarm[i].hour, config.alarm[i].minute);
