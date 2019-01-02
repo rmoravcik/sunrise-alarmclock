@@ -46,6 +46,7 @@ DNSServer dns;
 WiFiUDP udp;
 Ticker tkSecond;
 
+int wifiStatus = WL_IDLE_STATUS;
 int connectionTimeout = 0;
 int ntpUpdateRetryCount = 0;
 bool mdnsResponseSent = false;
@@ -207,7 +208,16 @@ void loop(void)
       mdnsResponseSent = false;
     }
 
-    if (WiFi.status() == WL_CONNECTED) {
+    int newWifiStatus = WiFi.status();
+    if (newWifiStatus != wifiStatus) {
+#ifdef SERIAL_DEBUG
+          Serial.print("DEBUG: WIFI status:");
+          Serial.println(newWifiStatus);
+#endif      
+      wifiStatus = newWifiStatus;
+    }
+
+    if (wifiStatus == WL_CONNECTED) {
       if (!mdnsResponseSent) {
 #ifdef SERIAL_DEBUG
           Serial.println("DEBUG: Sending mDNS response");
