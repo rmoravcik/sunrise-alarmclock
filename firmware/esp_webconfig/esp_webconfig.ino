@@ -228,11 +228,14 @@ void loop(void)
 #ifdef SERIAL_DEBUG
       Serial.print("DEBUG: WIFI status:");
       Serial.println(newWifiStatus);
+#endif
 
       if (newWifiStatus == WL_CONNECTED) {
+#ifdef SERIAL_DEBUG
         IPAddress ip = WiFi.localIP();
         Serial.print("DEBUG: IP Address: ");
         Serial.println(ip);
+#endif
 
 #ifdef ENABLE_LOGGING
         AddLog(LOG_EVENT_WIFI_CONNECTED, 0);
@@ -248,7 +251,6 @@ void loop(void)
         AddLog(LOG_EVENT_WIFI_STATUS_UNKNOWN, newWifiStatus);
 #endif
       }
-#endif      
       wifiStatus = newWifiStatus;
     }
 
