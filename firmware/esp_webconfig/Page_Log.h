@@ -35,16 +35,16 @@ const char PAGE_Log[] PROGMEM = R"=====(
   <script src="microajax.js"></script>
 
   <div id="menu">
-    &nbsp;<a href="config.html" style="width:25px; text-align:center;font-weight:bold" class="btn"><</a>&nbsp;&nbsp;<strong>Log</strong>
+    &nbsp;<a href="config.html" style="width:25px; text-align:center;font-weight:bold" class="btn"><</a>&nbsp;&nbsp;<strong>Záznam</strong>
   </div
   <br><br>
 
   <table border="0" style="width:310px" class="center">
   <tr>
-    <td style="padding:0px"><div id="log"><span style="padding:12px">Loading...</span></div></td>
+    <td style="padding:0px"><div id="log"><span style="padding:12px">Načítám...</span></div></td>
   </tr>
   <tr>
-    <td align="center"><a href="javascript:GetState()" style="width:150px" class="btn btn--m btn--green">Refresh</a></td>
+    <td align="center"><a href="javascript:GetState()" style="width:150px" class="btn btn--m btn--green">Obnovit</a></td>
   </tr>
   </table>
 
@@ -91,6 +91,9 @@ void send_log_values_html()
         break;
       case LOG_EVENT_WIFI_CONNECTED:
         event = "WIFI_CONNECTED";
+        break;
+      case LOG_EVENT_WIFI_STATUS_UNKNOWN:
+        event = "WIFI_STATUS_UNKNOWN";
         break;
       case LOG_EVENT_NTP_REQUEST:
         event = "NTP_REQUEST";

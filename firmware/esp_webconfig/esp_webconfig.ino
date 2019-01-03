@@ -243,6 +243,10 @@ void loop(void)
 #ifdef ENABLE_LOGGING
         AddLog(LOG_EVENT_WIFI_DISCONNECTED, 0);
 #endif
+      } else {
+#ifdef ENABLE_LOGGING
+        AddLog(LOG_EVENT_WIFI_STATUS_UNKNOWN, newWifiStatus);
+#endif
       }
 #endif      
       wifiStatus = newWifiStatus;
