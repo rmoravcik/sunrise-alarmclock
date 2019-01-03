@@ -98,6 +98,9 @@ void send_log_values_html()
       case LOG_EVENT_NTP_RESPONSE:
         event = "NTP_RESPONSE";
         break;
+      case LOG_EVENT_NTP_RESPONSE_TIMEOUT:
+        event = "NTP_RESPONSE_TIMEOUT";
+        break;
       case LOG_EVENT_PING:
         event = "PING";
         break;

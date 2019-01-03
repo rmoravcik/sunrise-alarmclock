@@ -62,7 +62,10 @@ void Tick()
   if (waitingNtpResponse) {
     if (ntpUpdateTimeout > 10) {
 #ifdef SERIAL_DEBUG
-          Serial.println("DEBUG: Timeout waiting for NTP response");
+      Serial.println("DEBUG: Timeout waiting for NTP response");
+#endif
+#ifdef ENABLE_LOGGING
+      AddLog(LOG_EVENT_NTP_RESPONSE_TIMEOUT, 0);
 #endif
       waitingNtpResponse = false;
       ntpUpdateRetryCount++;
