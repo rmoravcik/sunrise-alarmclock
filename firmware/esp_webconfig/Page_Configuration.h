@@ -43,11 +43,9 @@ const char PAGE_ConfigurationPage[] PROGMEM = R"=====(
     <tr>
       <td colspan="1" align="center"><a href="ntp.html" style="width:250px" class="btn btn--m btn--green">Nastavení synchronizace času</a></td>
     </tr>
-#ifdef ENABLED_LOGGING
     <tr>
       <td colspan="1" align="center"><a href="log.html" style="width:250px" class="btn btn--m btn--green">Záznam</a></td>
     </tr>
-#endif
   </table>
 
   <script>
