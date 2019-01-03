@@ -35,10 +35,12 @@
 #include "Page_NTPSettings.h"
 #include "Page_Information.h"
 #include "Page_NetworkConfiguration.h"
+#include "Page_Log.h"
 
 #include "config.h"
 #include "helpers.h"
 #include "common.h"
+#include "log.h"
 
 ESP8266WebServer server(80);
 ESP8266HTTPUpdateServer updater;
@@ -134,6 +136,12 @@ void setup(void)
   );
   server.on("/ntp.html", send_NTP_configuration_html);
 
+#ifdef ENABLE_LOGGING
+  server.on("/log.html",[]() {
+    server.send(200, "text/html", reinterpret_cast<const __FlashStringHelper *>(PAGE_Log));}
+  );
+#endif
+
   server.on("/style.css",[]() {
     server.send(200, "text/plain", reinterpret_cast<const __FlashStringHelper *>(PAGE_Style_css));}
   );
@@ -151,6 +159,10 @@ void setup(void)
   server.on("/admin/infovalues", send_information_values_html);
 
   server.on("/admin/ntpvalues", send_NTP_configuration_values_html);
+
+#ifdef ENABLE_LOGGING
+  server.on("/admin/logvalues", send_log_values_html);
+#endif
 
   server.onNotFound([]() {
     Serial.println(server.hostHeader());
@@ -211,8 +223,24 @@ void loop(void)
     int newWifiStatus = WiFi.status();
     if (newWifiStatus != wifiStatus) {
 #ifdef SERIAL_DEBUG
-          Serial.print("DEBUG: WIFI status:");
-          Serial.println(newWifiStatus);
+      Serial.print("DEBUG: WIFI status:");
+      Serial.println(newWifiStatus);
+
+      if (newWifiStatus == WL_CONNECTED) {
+        IPAddress ip = WiFi.localIP();
+        Serial.print("DEBUG: IP Address: ");
+        Serial.println(ip);
+
+#ifdef ENABLE_LOGGING
+        AddLog(LOG_EVENT_WIFI_CONNECTED, 0);
+#endif
+      } else if ((newWifiStatus == WL_DISCONNECTED) ||
+                 (newWifiStatus == WL_CONNECT_FAILED) ||
+                 (newWifiStatus == WL_CONNECTION_LOST)) {
+#ifdef ENABLE_LOGGING
+        AddLog(LOG_EVENT_WIFI_DISCONNECTED, 0);
+#endif
+      }
 #endif      
       wifiStatus = newWifiStatus;
     }

@@ -22,9 +22,10 @@
 
 #include <EEPROM.h>
 
-#include "ntp.h"
 #include "common.h"
 #include "config.h"
+#include "log.h"
+#include "ntp.h"
 
 IPAddress adminIpAddress(192, 168, 1, 100);
 IPAddress adiminNetmask(255, 255, 255, 0);
@@ -274,6 +275,10 @@ bool SendPingCommand(void)
 {
   String response = "";
 
+#ifdef ENABLE_LOGGING
+    AddLog(LOG_EVENT_PING, 0);
+#endif
+
   flushSerial();
   Serial.print("PING?\n");
 
@@ -290,6 +295,10 @@ bool SendPingCommand(void)
 bool SendGetStatusCommand(void)
 {
   String response = "";
+
+#ifdef ENABLE_LOGGING
+    AddLog(LOG_EVENT_GET_STATUS, 0);
+#endif
 
   flushSerial();
   Serial.print("STAT?\n");
@@ -333,6 +342,10 @@ bool SendSetTimeCommand(void)
   if (IS_EPOCH_VALID(utcTime)) {
     String values = "";
     DateTime localTime;
+
+#ifdef ENABLE_LOGGING
+    AddLog(LOG_EVENT_SET_TIME, utcTime);
+#endif
 
     LocalTime(utcTime, &localTime);
 
@@ -397,6 +410,10 @@ bool SendSetAlarmCommand(int id)
 {
   String values = "";
   String response = "";
+
+#ifdef ENABLE_LOGGING
+    AddLog(LOG_EVENT_SET_ALARM, id);
+#endif
 
   // ALARM+F;HH:mm
   values = "ALARM+" + (String) id + ";";

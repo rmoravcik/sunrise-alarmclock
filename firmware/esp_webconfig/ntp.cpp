@@ -25,6 +25,7 @@
 
 #include "config.h"
 #include "common.h"
+#include "log.h"
 #include "ntp.h"
 
 unsigned long utcTime;
@@ -133,6 +134,10 @@ void ntpUpdate(void)
     Serial.println(config.ntpServerName.c_str());
 #endif
 
+#ifdef ENABLE_LOGGING
+    AddLog(LOG_EVENT_NTP_REQUEST, 0);
+#endif
+
     memset(packetBuffer, 0, NTP_PACKET_SIZE);
     packetBuffer[0] = 0b11100011; // LI, Version, Mode
     packetBuffer[1] = 0;  // Stratum, or type of clock
@@ -168,6 +173,10 @@ void ntpResponse(void)
 #ifdef SERIAL_DEBUG
   Serial.print("DEBUG: Unix time = ");
   Serial.println(epoch);
+#endif
+
+#ifdef ENABLE_LOGGING
+    AddLog(LOG_EVENT_NTP_RESPONSE, epoch);
 #endif
 
   utcTime = epoch;
