@@ -51,7 +51,6 @@ Ticker tkSecond;
 int wifiStatus = WL_IDLE_STATUS;
 int connectionTimeout = 0;
 int ntpUpdateRetryCount = 0;
-bool mdnsResponseSent = false;
 int summerTime = -1;
 
 void Tick()
@@ -220,7 +219,6 @@ void loop(void)
       ConfigureConfigMode();
 
       connectionTimeout = 0;
-      mdnsResponseSent = false;
     }
 
     int newWifiStatus = WiFi.status();
@@ -240,6 +238,14 @@ void loop(void)
 #ifdef ENABLE_LOGGING
         AddLog(LOG_EVENT_WIFI_CONNECTED, 0);
 #endif
+
+#ifdef SERIAL_DEBUG
+        Serial.println("DEBUG: Sending mDNS response");
+#endif
+        MDNS.begin(config.hostname.c_str());
+        MDNS.addService("http", "tcp", 80);
+
+        ntpUpdate();
       } else if ((newWifiStatus == WL_DISCONNECTED) ||
                  (newWifiStatus == WL_CONNECT_FAILED) ||
                  (newWifiStatus == WL_CONNECTION_LOST)) {
@@ -255,17 +261,6 @@ void loop(void)
     }
 
     if (wifiStatus == WL_CONNECTED) {
-      if (!mdnsResponseSent) {
-#ifdef SERIAL_DEBUG
-          Serial.println("DEBUG: Sending mDNS response");
-#endif
-          MDNS.begin(config.hostname.c_str());
-          MDNS.addService("http", "tcp", 80);
-          mdnsResponseSent = true;
-
-          ntpUpdate();
-      }
-
       if (ntpUpdateTimeout >= config.ntpUpdateTime * 60) {
         ntpUpdate();
       }
