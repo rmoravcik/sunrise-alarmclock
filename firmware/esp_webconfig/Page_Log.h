@@ -73,7 +73,7 @@ void send_log_values_html()
   String Entries = "";
 
   Entries += "<table border='0' style='width:310px' class='center'>";
-  Entries += "<tr bgcolor='#DDDDDD' ><td><strong>Timestamp</strong></td><td><strong>Event</strong></td><td><strong>Param</strong></td><tr>";
+  Entries += "<tr bgcolor='#DDDDDD' ><td><strong>Timestamp</strong></td><td><strong>Event</strong></td><td><strong>Parameter</strong></td><tr>";
 
   byte index = 0;
   if (LogSize == LOG_SIZE) {
