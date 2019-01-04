@@ -126,10 +126,12 @@ void LocalTime(unsigned long epoch, struct DateTime *dt)
   }
 }
 
-static void flushUdpSocket(void)
+static void flushUdpRxBuf(void)
 {
   while (udp.parsePacket()) {
-    udp.read(packetBuffer, NTP_PACKET_SIZE);
+    while (udp.available()) {
+      udp.read();
+    }
   }
 }
 
@@ -145,7 +147,7 @@ void ntpUpdate(void)
     AddLog(LOG_EVENT_NTP_REQUEST, 0);
 #endif
 
-    flushUdpSocket();
+    flushUdpRxBuf();
 
     memset(packetBuffer, 0, NTP_PACKET_SIZE);
     packetBuffer[0] = 0b11100011; // LI, Version, Mode
