@@ -126,6 +126,13 @@ void LocalTime(unsigned long epoch, struct DateTime *dt)
   }
 }
 
+static void flushUdpSocket(void)
+{
+  while (udp.parsePacket()) {
+    udp.read(packetBuffer, NTP_PACKET_SIZE);
+  }
+}
+
 void ntpUpdate(void)
 {
   if (config.ntpUpdateTime > 0) {
@@ -137,6 +144,8 @@ void ntpUpdate(void)
 #ifdef ENABLE_LOGGING
     AddLog(LOG_EVENT_NTP_REQUEST, 0);
 #endif
+
+    flushUdpSocket();
 
     memset(packetBuffer, 0, NTP_PACKET_SIZE);
     packetBuffer[0] = 0b11100011; // LI, Version, Mode
